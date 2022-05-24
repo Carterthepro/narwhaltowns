@@ -1,0 +1,9 @@
+name: NarwhalTowns
+version: ${project.version}
+main: narwhal.narwhaltowns.NarwhalTowns
+api-version: 1.18
+authors: [ TheNarwhal, Lfwer250 ]
+description: Town plugin
+commands:
+  Town:
+    aliases: [t,narwhaltown]
