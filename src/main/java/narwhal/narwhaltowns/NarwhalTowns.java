@@ -18,11 +18,8 @@ public final class NarwhalTowns extends JavaPlugin {
     @Override
     public void onEnable() {
 
-        Bukkit.getLogger().info("Initalizing data manager");
         townData = new DataManager(this,"towns");
-        Bukkit.getLogger().info("Join listener");
         getServer().getPluginManager().registerEvents(new JoinListener(this), this);
-        Bukkit.getLogger().info("PlayerMoveListener listener");
         getServer().getPluginManager().registerEvents(new PlayerMoveListener(), this);
         this.getCommand("town").setExecutor(new TownCommands(this));
 

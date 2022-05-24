@@ -14,13 +14,13 @@ public class DataManager {
     private NarwhalTowns plugin;
     private FileConfiguration dataConfig = null;
     private File configFile = null;
+    private String fileName;
 
     public DataManager(NarwhalTowns plugin, String fileName){
         this.plugin = plugin;
         this.fileName = fileName+".yml";
         saveDefaultConfig();
     }
-    private String fileName;
     public void reloadConfig(){
         if(configFile == null)
             configFile = new File(this.plugin.getDataFolder(),fileName);
@@ -51,7 +51,9 @@ public class DataManager {
 
         if(!configFile.exists()){
             configFile.getParentFile().mkdirs();
-            plugin.saveResource(fileName,false);
+            Bukkit.getLogger().info("pre");
+            plugin.saveResource(fileName, false);
+            Bukkit.getLogger().info("post");
         }
     }
 }
