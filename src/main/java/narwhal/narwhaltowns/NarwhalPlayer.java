@@ -1,9 +1,11 @@
 package narwhal.narwhaltowns;
 
 import narwhal.narwhaltowns.Files.DataManager;
+import narwhal.narwhaltowns.Money;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -109,6 +111,16 @@ public class NarwhalPlayer {
         for (Perms perm:perms) {
             if(!this.perms.contains(perm)) this.perms.add(perm);
         }
+    }
+
+    public int getCashAmount(){
+        int amount = 0;
+        for (ItemStack money : player.getInventory().getContents()) {
+            if(money instanceof  Money){
+                amount += ((Money) money).getValue();
+            }
+        }
+        return amount;
     }
     public void removePerm(Perms perm){
         perms.remove(perm);

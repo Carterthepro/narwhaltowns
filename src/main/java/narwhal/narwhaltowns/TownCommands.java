@@ -60,7 +60,7 @@ public class TownCommands implements CommandExecutor {
             player.getPlayer().sendMessage(ChatColor.RED+"Cannot create town as you already are a member of a town, try: /town leave [town name] or /town disband");
             return false;
         }
-        if(args[1].length()>20 || args.length<4) {
+        if(args[1].length()>20 || args[1].length()<4) {
             player.getPlayer().sendMessage(ChatColor.RED+"town names must be from 4-20 characters in length");
             return false;
         }

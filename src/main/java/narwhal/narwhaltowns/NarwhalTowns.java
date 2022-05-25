@@ -22,6 +22,7 @@ public final class NarwhalTowns extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new JoinListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerMoveListener(), this);
         this.getCommand("town").setExecutor(new TownCommands(this));
+        this.getCommand("givemoney").setExecutor(new BankCommands(this));
 
 
         for(String townName : townData.getConfig().getStringList("towns")){
