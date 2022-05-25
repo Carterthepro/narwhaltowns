@@ -21,9 +21,8 @@ public final class NarwhalTowns extends JavaPlugin {
         townData = new DataManager(this,"towns");
         getServer().getPluginManager().registerEvents(new JoinListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerMoveListener(), this);
+        getServer().getPluginManager().registerEvents(new ChatListener(),this);
         this.getCommand("town").setExecutor(new TownCommands(this));
-
-
 
         for(String townName : townData.getConfig().getKeys(false)){
             Town town = new Town(townName, townData);
@@ -53,11 +52,16 @@ public final class NarwhalTowns extends JavaPlugin {
 
 
         }
+
+
     }
     @Override
     public void onDisable() {
         for (Town town:Town.getTowns()) {
             town.save();
+        }
+        for (NarwhalPlayer player : NarwhalPlayer.onlinePlayers){
+            player.save();
         }
     }
 

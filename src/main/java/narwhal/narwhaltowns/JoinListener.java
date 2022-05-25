@@ -47,10 +47,13 @@ public class JoinListener implements Listener {
                 }
             }
         }
+        else{player.save();}
     }
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent e){
+
         NarwhalPlayer player = NarwhalPlayer.convertPlayer(e.getPlayer());
         player.onDisconnect(e);
+        e.setQuitMessage(player.getPlayer().getDisplayName()+" has left");
     }
 }

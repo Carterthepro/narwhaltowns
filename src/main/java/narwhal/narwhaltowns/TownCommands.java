@@ -34,6 +34,8 @@ public class TownCommands implements CommandExecutor {
                     return create(player,args);
                 case "info":
                     return info(player,args);
+                case "list":
+                    return list(player,args);
                 case "claim":
                     return claim(player,args);
                 case "leave":
@@ -81,6 +83,8 @@ public class TownCommands implements CommandExecutor {
         //TEMP
         player.addPerm(Perms.disband);
         player.addPerm(Perms.claim);
+        player.addPerm(Perms.invite);
+        player.setTitle("GOD");
         return true;
 
     }
@@ -94,36 +98,62 @@ public class TownCommands implements CommandExecutor {
                 return false;
             }
 
-        }else{
+        }
+        else {
             town = Town.getTownFromName(args[1]);
             if(town == null){
-                player.getPlayer().sendMessage(ChatColor.RED + args[1]+" does not exist, make sure your spelling the town name correctly");
+               player.getPlayer().sendMessage(ChatColor.RED + args[1]+" does not exist, make sure your spelling the town name correctly");
                 return false;
             }
-            StringBuilder str = new StringBuilder(ChatColor.GREEN+""+ChatColor.BOLD);
-            str.append(town.getName());
-            str.append(ChatColor.RESET + "" + ChatColor.GOLD);
-            str.append("\n---------------\n");
-            str.append("members(");
-            str.append(town.getOnlineMembers().length);
-            str.append(") online(");
-            player.getPlayer().sendMessage();
-
         }
+        StringBuilder str = new StringBuilder(ChatColor.GREEN+""+ChatColor.BOLD);
+        str.append(town.getName());
+        str.append(ChatColor.RESET + "" + ChatColor.GOLD);
+        str.append("\n---------------\n");
+        str.append("Members(");
+        str.append(town.getMembers().length);
+        str.append("):\nOnline(");
+        str.append(town.getOnlineMembers().length);
+        str.append("):");
+        for (NarwhalPlayer member:town.getOnlineMembers()){
+            str.append(member.getTitle());
+            str.append(" ");
+            str.append(member.getPlayer().getName());
+        }
+        str.append("\nOffline(");
+        //GET OFFLINE MEMBER AMOUNT AND NAMES SOMEHOW
+        player.getPlayer().sendMessage(str.toString());
+
+
+
+        return true;
+
+    }
+
+    //IMPROVE IN THE FUTURE, ADD HOVER AND CLICK EVENTS AND MORE PAGES
+    boolean list(NarwhalPlayer player,String[] args){
+
+        StringBuilder str = new StringBuilder("Towns: ");
+
+        for (Town town:Town.getTowns()){
+            str.append(town.getName());
+            str.append(", ");
+        }
+        player.getPlayer().sendMessage(str.toString());
 
         return true;
 
     }
 
     boolean claim(NarwhalPlayer player, String[] args){
-        if(!player.hasPerm(Perms.claim)) {
-            player.getPlayer().sendMessage(ChatColor.RED + "You do not have permission to use that command");
-            return false;
-        }
         Town town = (Town) player.getTerritory("town");
         if(town == null){
 
             player.getPlayer().sendMessage(ChatColor.RED+"You are not apart of any town,try /town create [town name]");
+            return false;
+        }
+        if(!player.hasPerm(Perms.claim)) {
+            player.getPlayer().sendMessage(ChatColor.RED + "You do not have permission to use that command");
             return false;
         }
         int loops = 1;
@@ -222,7 +252,7 @@ public class TownCommands implements CommandExecutor {
         }
         NarwhalPlayer receiver = NarwhalPlayer.convertPlayer(receivingPlayer);
         if(!invites.containsKey(receiver)) invites.put(receiver, new ArrayList<Town>());
-        if(!invites.get(receiver).contains(town)){
+        if(invites.get(receiver).contains(town)){
             player.getPlayer().sendMessage(ChatColor.RED + "Your town already has a pending invite to that player");
             return false;
         }

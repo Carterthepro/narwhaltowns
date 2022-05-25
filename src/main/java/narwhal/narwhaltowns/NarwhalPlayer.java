@@ -13,7 +13,7 @@ import java.util.UUID;
 public class NarwhalPlayer {
     public NarwhalPlayer(Player player, DataManager data){
         this.player =player;
-        Players.add(this);
+        onlinePlayers.add(this);
         Bukkit.getLogger().info("created narwhal player "+player.getName());
         this.data = data;
     }
@@ -21,7 +21,7 @@ public class NarwhalPlayer {
     private final DataManager data;
     public void onDisconnect(PlayerQuitEvent event){
         save();
-        NarwhalPlayer.Players.remove(this);
+        NarwhalPlayer.onlinePlayers.remove(this);
     }
     public void save(){
         data.getConfig().set(player.getUniqueId()+".title",title);
@@ -38,9 +38,9 @@ public class NarwhalPlayer {
 
         data.saveConfig();
     }
-    public static List<NarwhalPlayer> Players = new ArrayList<NarwhalPlayer>();
+    public static List<NarwhalPlayer> onlinePlayers = new ArrayList<NarwhalPlayer>();
     public static NarwhalPlayer convertPlayer(Player player){
-        for (NarwhalPlayer narwhalPlayer:Players) {
+        for (NarwhalPlayer narwhalPlayer: onlinePlayers) {
             if(narwhalPlayer.player == player){
                 return narwhalPlayer;
             }
@@ -49,7 +49,7 @@ public class NarwhalPlayer {
         return null;
     }
     public static NarwhalPlayer getPlayerFromUUID(String uuid){
-        for(NarwhalPlayer player:Players){
+        for(NarwhalPlayer player: onlinePlayers){
             if(player.getPlayer().getUniqueId().toString().equalsIgnoreCase(uuid)){
                 return player;
             }
@@ -57,7 +57,7 @@ public class NarwhalPlayer {
         return null;
     }
     public static NarwhalPlayer getPlayerFromUUID(UUID uuid){
-        for(NarwhalPlayer player:Players){
+        for(NarwhalPlayer player: onlinePlayers){
             if(player.getPlayer().getUniqueId().equals(uuid)){
                 return player;
             }
@@ -103,6 +103,9 @@ public class NarwhalPlayer {
     public void setPerms(Perms[] perms){
         this.perms.clear();
         this.perms.addAll(Arrays.asList(perms));
+    }
+    public void clearPerms(){
+        this.perms.clear();
     }
     public void addPerm(Perms perm){
         if(!perms.contains(perm)) perms.add(perm);
