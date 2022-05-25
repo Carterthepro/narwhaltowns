@@ -24,16 +24,18 @@ public class NarwhalPlayer {
         NarwhalPlayer.Players.remove(this);
     }
     public void save(){
-        data.getConfig().set("players."+player.getUniqueId()+".title",title);
+        data.getConfig().set(player.getUniqueId()+".title",title);
         List<String> permList = new ArrayList<String>();
         for (Perms perm:perms) {
             permList.add(perm.toString());
         }
-        data.getConfig().set("players."+player.getUniqueId()+".perms",permList.toArray(new String[0]));
-
+        data.getConfig().set(player.getUniqueId()+".perms",permList.toArray(new String[0]));
+        List<String> territoryNames = new ArrayList<>();
         for (Territory territory:territories){
-            data.getConfig().set("players."+player.getUniqueId()+".territories",territory.getName());
+            territoryNames.add(territory.getName());
         }
+        data.getConfig().set(player.getUniqueId()+".territories",territoryNames);
+
         data.saveConfig();
     }
     public static List<NarwhalPlayer> Players = new ArrayList<NarwhalPlayer>();

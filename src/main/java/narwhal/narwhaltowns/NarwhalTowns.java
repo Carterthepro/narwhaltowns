@@ -24,16 +24,25 @@ public final class NarwhalTowns extends JavaPlugin {
         this.getCommand("town").setExecutor(new TownCommands(this));
 
 
-        for(String townName : townData.getConfig().getStringList("towns")){
+
+        for(String townName : townData.getConfig().getKeys(false)){
             Town town = new Town(townName, townData);
-            townData.getConfig().getStringList("towns."+townName+".members");
-            //ADD MEMBERS
-            if(!townData.getConfig().contains("towns."+townName+".chunkX") || !townData.getConfig().contains("towns."+townName+".chunkY")){
-                Bukkit.getLogger().severe("Error loading town " + town.getName() + " as it has 0 x or y coordinates");
+            Bukkit.getLogger().info("Loading town: "+townName);
+
+            if(townData.getConfig().contains(townName+".members")) {
+                for (String member : townData.getConfig().getStringList(townName + ".members")) {
+                    town.addMember(member);
+                }
+            }else{
+                Bukkit.getLogger().severe("Error loading town " + town.getName() + " members are empty");
                 continue;
             }
-            List<Integer> xList = townData.getConfig().getIntegerList("towns."+townName+".chunkX");
-            List<Integer> yList = townData.getConfig().getIntegerList("towns."+townName+".chunkY");
+            if(!townData.getConfig().contains(townName+".chunksX") || !townData.getConfig().contains(townName+".chunksY")){
+                Bukkit.getLogger().severe("Error loading town " + town.getName() + " as it has 0 x or y coordinates");
+                //continue;
+            }
+            List<Integer> xList = townData.getConfig().getIntegerList(townName+".chunksX");
+            List<Integer> yList = townData.getConfig().getIntegerList(townName+".chunksY");
             if(xList.size()!=yList.size()) {
                 Bukkit.getLogger().severe("Error loading town " + town.getName() + " as there's a different amount of x and y coordinates");
                 continue;

@@ -22,20 +22,20 @@ public class JoinListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent e) {
         NarwhalPlayer player = new NarwhalPlayer(e.getPlayer(), data);
         UUID uuid = e.getPlayer().getUniqueId();
-        if (data.getConfig().contains("players." + uuid)) {
-            if (data.getConfig().contains("players." + uuid + ".perms")) {
-                List<String> permsList = data.getConfig().getStringList("players." + uuid + ".perms");
+        if (data.getConfig().contains(uuid.toString())) {
+            if (data.getConfig().contains(uuid + ".perms")) {
+                List<String> permsList = data.getConfig().getStringList(uuid + ".perms");
                 List<Perms> perms = new ArrayList<>();
                 for (String perm : permsList) {
                     perms.add(Perms.valueOf(perm));
                 }
                 player.addPerms(perms.toArray(new Perms[0]));
             }
-            if (data.getConfig().contains("players." + uuid + ".tittle")) {
-                player.setTitle(data.getConfig().getString("players." + uuid + ".tittle"));
+            if (data.getConfig().contains(uuid + ".tittle")) {
+                player.setTitle(data.getConfig().getString(uuid + ".tittle"));
             }
-            if (data.getConfig().contains("players." + uuid + ".territories")) {
-                for (String territoryName : data.getConfig().getStringList("players." + uuid + ".territories")) {
+            if (data.getConfig().contains(uuid + ".territories")) {
+                for (String territoryName : data.getConfig().getStringList(uuid + ".territories")) {
                     Territory territory = Territory.getTerritoryFromName(territoryName);
                     if(territory!=null){
                         for(String member:territory.getMembers()) {

@@ -48,12 +48,9 @@ public class DataManager {
     public void saveDefaultConfig(){
         if(configFile==null)
             configFile = new File(plugin.getDataFolder(), fileName);
-
         if(!configFile.exists()){
             configFile.getParentFile().mkdirs();
-            Bukkit.getLogger().info("pre");
             plugin.saveResource(fileName, false);
-            Bukkit.getLogger().info("post");
         }
     }
 }

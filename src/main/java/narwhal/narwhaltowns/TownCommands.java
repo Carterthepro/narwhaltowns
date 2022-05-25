@@ -60,8 +60,8 @@ public class TownCommands implements CommandExecutor {
             player.getPlayer().sendMessage(ChatColor.RED+"Cannot create town as you already are a member of a town, try: /town leave [town name] or /town disband");
             return false;
         }
-        if(args[1].length()>20 || args.length<4) {
-            player.getPlayer().sendMessage(ChatColor.RED+"town names must be from 4-20 characters in length");
+        if(args[1].length()>20 || args[1].length()<4) {
+            player.getPlayer().sendMessage(ChatColor.RED+"Town names must be from 4-20 characters in length");
             return false;
         }
         if (Town.getTerritoryFromName(args[1]) != null) {
@@ -132,17 +132,19 @@ public class TownCommands implements CommandExecutor {
             catch (NumberFormatException e){
             }
         }
+        int claimedChunks = 0;
         for (int i = -(loops/2);i<Math.ceil(loops/2D);i++) {
             int x = player.getPlayer().getLocation().getChunk().getX() + i;
             for (int j =-(loops/2);j<Math.ceil(loops/2D);j++) {
                 int y = player.getPlayer().getLocation().getChunk().getZ() + j;
                 if(town.addChunk(x, y)) {
                     player.getPlayer().sendMessage(ChatColor.GREEN + "Claimed Chunk" + " for " + town.getName());
+                    claimedChunks++;
                 }
                 else player.getPlayer().sendMessage(ChatColor.RED + "Couldn't claimed chunk as someone already owns that chunk");
             }
         }
-        Bukkit.getLogger().info(player.getPlayer().getDisplayName() + " claimed "+(loops*loops)+" chunks for "+town.getName());
+        Bukkit.getLogger().info(player.getPlayer().getDisplayName() + " claimed "+(claimedChunks)+" chunks for "+town.getName());
         return true;
 
         }

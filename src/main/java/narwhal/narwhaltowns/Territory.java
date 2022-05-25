@@ -79,6 +79,10 @@ public abstract class Territory {
             members.add(player.getPlayer().getUniqueId().toString());
         player.addTerritory(this);
     }
+    public void addMember(String uuid){
+        if(!members.contains(uuid))
+            members.add(uuid);
+    }
 
     public void removeMember(NarwhalPlayer player){
         onlineMembers.remove(player);
