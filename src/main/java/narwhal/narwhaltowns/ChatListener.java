@@ -21,7 +21,7 @@ public class ChatListener implements Listener {
         }
         str.append('<');
         str.append(player.getPlayer().getDisplayName());
-        str.append('>');
+        str.append("> ");
         str.append(e.getMessage());
         e.setFormat(str.toString());
     }

@@ -11,15 +11,18 @@ import java.util.List;
 import java.util.UUID;
 
 public class NarwhalPlayer {
-    public NarwhalPlayer(Player player, DataManager data){
+    public NarwhalPlayer(Player player){
         this.player =player;
         onlinePlayers.add(this);
         Bukkit.getLogger().info("created narwhal player "+player.getName());
-        this.data = data;
+        data = NarwhalTowns.getPlayerData();
     }
 
-    private final DataManager data;
+    private DataManager data;
     public void onDisconnect(PlayerQuitEvent event){
+        Town town = (Town) getTerritory("town");
+        if(town != null)
+            town.disconnectPlayer(this);
         save();
         NarwhalPlayer.onlinePlayers.remove(this);
     }
@@ -69,7 +72,7 @@ public class NarwhalPlayer {
     public void addTerritory(Territory territory){
         for (Territory _territory: territories) {
             if(_territory.getType() == territory.getType()){
-                Bukkit.getLogger().warning("Cannot add territory as it is already an owner of the chunk");
+                Bukkit.getLogger().warning("Cannot add territory as it the player already has a territory of that type");
                 return;
             }
         }
@@ -85,6 +88,7 @@ public class NarwhalPlayer {
             i++;
         }
     }
+
     public void removeTerritory(Territory territory){
         territories.remove(territory);
     }

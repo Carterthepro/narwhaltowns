@@ -11,14 +11,19 @@ public final class NarwhalTowns extends JavaPlugin {
         instance = this;
     }
     static NarwhalTowns instance;
-    private DataManager townData;
-    public DataManager getTownData(){
+    private static DataManager townData;
+    private static DataManager playerData;
+    public static DataManager getTownData(){
         return townData;
+    }
+    public static DataManager getPlayerData(){
+        return playerData;
     }
     @Override
     public void onEnable() {
 
         townData = new DataManager(this,"towns");
+        playerData = new DataManager(this,"players");
         getServer().getPluginManager().registerEvents(new JoinListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerMoveListener(), this);
         getServer().getPluginManager().registerEvents(new ChatListener(),this);
@@ -66,3 +71,4 @@ public final class NarwhalTowns extends JavaPlugin {
     }
 
 }
+

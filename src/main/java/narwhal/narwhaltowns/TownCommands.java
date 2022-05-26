@@ -266,11 +266,13 @@ public class TownCommands implements CommandExecutor {
         player.getPlayer().sendMessage(ChatColor.GREEN +"You have invited "+receivingPlayer.getName() + " to join "+town.getName());
         new BukkitRunnable() {
             public void run() {
-                invites.get(receiver).remove(town);
-                if(invites.get(receiver).size()==0)invites.remove(receiver);
-                player.getPlayer().sendMessage(ChatColor.RED + "Invite to "+receivingPlayer.getName() + " has expired");
-                if(receivingPlayer.isOnline())
-                    receivingPlayer.sendMessage(ChatColor.RED + "Invite from "+player.getPlayer().getName() + " has expired");
+                if(invites.get(receiver).contains(town)) {
+                    invites.get(receiver).remove(town);
+                    if (invites.get(receiver).size() == 0) invites.remove(receiver);
+                    player.getPlayer().sendMessage(ChatColor.RED + "Invite to " + receivingPlayer.getName() + " has expired");
+                    if (receivingPlayer.isOnline())
+                        receivingPlayer.sendMessage(ChatColor.RED + "Invite from " + player.getPlayer().getName() + " has expired");
+                }
             }
         }.runTaskLater(plugin, 20*25);
         return true;
