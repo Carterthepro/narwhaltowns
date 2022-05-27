@@ -20,7 +20,7 @@ public class JoinListener implements Listener {
     private NarwhalTowns plugin;
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
-        NarwhalPlayer player = new NarwhalPlayer(e.getPlayer());
+        NarwhalPlayer player = new NarwhalPlayer(e.getPlayer(),plugin);
         UUID uuid = e.getPlayer().getUniqueId();
         if (data.getConfig().contains(uuid.toString())) {
             if (data.getConfig().contains(uuid + ".perms")) {

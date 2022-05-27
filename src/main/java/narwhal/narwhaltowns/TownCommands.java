@@ -17,7 +17,9 @@ import java.util.List;
 
 public class TownCommands implements CommandExecutor {
     public TownCommands(NarwhalTowns plugin){
+
         this.plugin = plugin;
+
     }
     NarwhalTowns plugin;
     @Override
@@ -29,6 +31,10 @@ public class TownCommands implements CommandExecutor {
             }
             NarwhalPlayer player = NarwhalPlayer.convertPlayer(((Player)sender));
             if(player==null)return false;
+            if(args.length == 0){
+                //RUN HELP COMMAND
+                return false;
+            }
             switch (args[0].toLowerCase()){
                 case "create":
                     return create(player,args);
@@ -54,6 +60,7 @@ public class TownCommands implements CommandExecutor {
     }
     boolean create(NarwhalPlayer player,String[] args){
 
+        //ADD NAME FILTERING
         if(args.length<2) {
             player.getPlayer().sendMessage(ChatColor.RED+"Usage: /town create [town name]");
             return false;
@@ -76,7 +83,7 @@ public class TownCommands implements CommandExecutor {
             player.getPlayer().sendMessage(ChatColor.RED+"Cannot create town in claimed land");
             return false;
         }
-        Town town = new Town(args[1],plugin.getTownData());
+        Town town = new Town(args[1], NarwhalTowns.getTownData());
         town.addMember(player);
         town.addChunk(x,y);
         player.getPlayer().sendMessage(ChatColor.GREEN + "Created Town: " + town.getName());
@@ -250,14 +257,19 @@ public class TownCommands implements CommandExecutor {
             player.getPlayer().sendMessage(ChatColor.RED + "Cannot invite "+args[1]+" as they aren't online");
             return false;
         }
+        if(receivingPlayer == player){
+            player.getPlayer().sendMessage(ChatColor.RED + "You cannot invite yourself to a town");
+            return false;
+        }
+
         NarwhalPlayer receiver = NarwhalPlayer.convertPlayer(receivingPlayer);
-        if(!invites.containsKey(receiver)) invites.put(receiver, new ArrayList<Town>());
+        if(!invites.containsKey(receiver)) invites.put(receiver, new ArrayList<>());
         if(invites.get(receiver).contains(town)){
             player.getPlayer().sendMessage(ChatColor.RED + "Your town already has a pending invite to that player");
             return false;
         }
         invites.get(receiver).add(town);
-        TextComponent message = new TextComponent("You have been invited to "+town.getName()+" by "+player+"\nclick here to accept");
+        TextComponent message = new TextComponent("You have been invited to "+town.getName()+" by "+player.getPlayer().getDisplayName()+"\nclick here to accept");
         message.setColor(net.md_5.bungee.api.ChatColor.GREEN);
         message.setBold(true);
         message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,"/town accept "+town.getName()));
@@ -285,7 +297,7 @@ public class TownCommands implements CommandExecutor {
         }
         Town town;
         if(args.length==1){
-            if(invites.get(player).size()==0){
+            if(!invites.containsKey(player)||invites.get(player).size()==0){
                 player.getPlayer().sendMessage(ChatColor.RED + "You do not have any pending invites to accept");
                 return false;
             }
@@ -298,13 +310,14 @@ public class TownCommands implements CommandExecutor {
                 player.getPlayer().sendMessage(ChatColor.RED + args[1]+" does not exist, make sure your spelling the town name correctly");
                 return false;
             }
-            if(!invites.get(player).contains(town)){
+            if(!invites.containsKey(player)||!invites.get(player).contains(town)){
                 player.getPlayer().sendMessage(ChatColor.RED + "You do not have any pending invites from "+town.getName());
                 return false;
             }
 
         }
         town.addMember(player);
+
         invites.get(player).remove(town);
         player.getPlayer().sendMessage(ChatColor.GREEN + "You have joined "+town.getName());
         //ADD PERM SETUP
