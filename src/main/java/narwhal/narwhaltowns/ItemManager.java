@@ -66,7 +66,6 @@ public class ItemManager {
         if (!item.hasItemMeta()) return false;
         if (!item.getItemMeta().hasLore()) return false;
         if (item.getItemMeta().getLore().size() < 2) return false;
-        if(item.getItemMeta().getLore().get(1).contains("Narwhal Cash"))return true;
-        return false;
+        return item.getItemMeta().getLore().get(1).contains("Narwhal Cash");
     }
 }

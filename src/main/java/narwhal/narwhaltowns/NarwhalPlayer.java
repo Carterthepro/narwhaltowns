@@ -2,13 +2,10 @@ package narwhal.narwhaltowns;
 
 import narwhal.narwhaltowns.Files.DataManager;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 
 import java.util.ArrayList;
@@ -17,16 +14,14 @@ import java.util.List;
 import java.util.UUID;
 
 public class NarwhalPlayer {
-    public NarwhalPlayer(Player player, NarwhalTowns plugin) {
+    public NarwhalPlayer(Player player) {
         this.player = player;
         onlinePlayers.add(this);
         Bukkit.getLogger().info("created narwhal player " + player.getName());
         data = NarwhalTowns.getPlayerData();
-        this.plugin = plugin;
+        setCurrentChunk(Chunk.getChunkFromCoords(player.getLocation().getChunk().getX(),player.getLocation().getChunk().getZ()));
     }
-
-    private final NarwhalTowns plugin;
-    private DataManager data;
+    private final DataManager data;
 
     public void onDisconnect(PlayerQuitEvent event) {
         Town town = (Town) getTerritory("town");
@@ -35,23 +30,29 @@ public class NarwhalPlayer {
         save();
         NarwhalPlayer.onlinePlayers.remove(this);
     }
-
     public void save() {
         data.getConfig().set(player.getUniqueId() + ".title", title);
         List<String> permList = new ArrayList<String>();
-        for (Perms perm : perms) {
+        for (TownPerms perm : perms) {
             permList.add(perm.toString());
         }
-        data.getConfig().set(player.getUniqueId() + ".perms", permList.toArray(new String[0]));
+        data.getConfig().set(player.getUniqueId() + ".perms", permList);
         List<String> territoryNames = new ArrayList<>();
         for (Territory territory : territories) {
             territoryNames.add(territory.getName());
         }
         data.getConfig().set(player.getUniqueId() + ".territories", territoryNames);
+        data.getConfig().set(player.getUniqueId() + ".name", player.getDisplayName().toLowerCase());
 
         data.saveConfig();
     }
+    private final Player player;
 
+    public Player getPlayer() {
+        return player;
+    }
+
+    //Static
     public static List<NarwhalPlayer> onlinePlayers = new ArrayList<NarwhalPlayer>();
 
     public static NarwhalPlayer convertPlayer(Player player) {
@@ -64,9 +65,9 @@ public class NarwhalPlayer {
         return null;
     }
 
-    public static NarwhalPlayer getPlayerFromUUID(String uuid) {
+    public static NarwhalPlayer getPlayerFromName(String name) {
         for (NarwhalPlayer player : onlinePlayers) {
-            if (player.getPlayer().getUniqueId().toString().equalsIgnoreCase(uuid)) {
+            if (player.getPlayer().getDisplayName().equalsIgnoreCase(name)) {
                 return player;
             }
         }
@@ -82,6 +83,81 @@ public class NarwhalPlayer {
         return null;
     }
 
+    //Perms
+    private List<TownPerms> perms = new ArrayList<>();
+    public void setPerms(TownPerms[] perms) {
+        this.perms.clear();
+        this.perms.addAll(Arrays.asList(perms));
+    }
+
+    public void clearPerms() {
+        this.perms.clear();
+    }
+
+    public void addPerm(TownPerms perm) {
+        if (!perms.contains(perm)) perms.add(perm);
+    }
+
+    public void addPerms(TownPerms[] perms) {
+        for (TownPerms perm : perms) {
+            if (!this.perms.contains(perm)) this.perms.add(perm);
+        }
+    }
+
+    public void removePerm(TownPerms perm) {
+        perms.remove(perm);
+    }
+
+    public boolean hasPerm(TownPerms perm) {
+        return perms.contains(perm);
+    }
+
+    //Chunk
+    private int currentChunkX;
+    private int currentChunkY;
+    private Chunk currentChunk = null;
+    public Chunk getCurrentChunk(){
+        return currentChunk;
+    }
+
+    public void setCurrentChunk(Chunk chunk){
+        currentChunk = chunk;
+        if(chunk == null){
+            currentChunkX = player.getLocation().getChunk().getX();
+            currentChunkY = player.getLocation().getChunk().getZ();
+        }
+    }
+
+    public int getCurrentChunkY(){
+        if(currentChunk!=null){
+            currentChunkY = currentChunk.getY();
+            currentChunkX = currentChunk.getX();
+        }
+        return currentChunkY;
+    }
+    public int getCurrentChunkX(){
+        if(currentChunk!=null){
+            currentChunkY = currentChunk.getY();
+            currentChunkX = currentChunk.getX();
+        }
+        return currentChunkX;
+    }
+    public boolean CanInteractWith(Block block, TownPerms permRequired){
+        int blockChunkX = block.getChunk().getX();
+        int blockChunkY = block.getChunk().getZ();
+        if(getCurrentChunk() !=null) {
+            if (blockChunkX == getCurrentChunkX() && blockChunkY == getCurrentChunkY()) {
+                return isInTerritory(getTerritory("town"));
+            }
+        }
+        Chunk chunk = Chunk.getChunkFromCoords(blockChunkX,blockChunkY);
+        if(chunk==null)return true;
+        //Is slow, try to optimize
+        Town town = (Town) chunk.getOwner("town");
+        if(town==null)return true;
+        return hasPerm(permRequired)&&town== getTerritory("town");
+    }
+    //Territory
     private List<Territory> territories = new ArrayList<Territory>();
 
     public void addTerritory(Territory territory) {
@@ -118,40 +194,16 @@ public class NarwhalPlayer {
         return null;
     }
 
-    private List<Perms> perms = new ArrayList<>();
-    private final Player player;
-
-    public Player getPlayer() {
-        return player;
+    public boolean isInTerritory(Territory territory){
+        if(territory == null)return false;
+        if(currentChunk==null)return false;
+        return currentChunk.getOwner(territory.getType())==territory;
     }
 
-    public void setPerms(Perms[] perms) {
-        this.perms.clear();
-        this.perms.addAll(Arrays.asList(perms));
-    }
 
-    public void clearPerms() {
-        this.perms.clear();
-    }
 
-    public void addPerm(Perms perm) {
-        if (!perms.contains(perm)) perms.add(perm);
-    }
-
-    public void addPerms(Perms[] perms) {
-        for (Perms perm : perms) {
-            if (!this.perms.contains(perm)) this.perms.add(perm);
-        }
-    }
-
-    public void removePerm(Perms perm) {
-        perms.remove(perm);
-    }
-
-    public boolean hasPerm(Perms perm) {
-        return perms.contains(perm);
-    }
-
+    //Title
+    private String title = "";
     public String getTitle() {
         return title;
     }
@@ -160,9 +212,8 @@ public class NarwhalPlayer {
         this.title = title;
     }
 
-    private String title = "";
 
-
+    //MONEY
     private int money = 0;
 
     public int getMoney() {
@@ -191,17 +242,19 @@ public class NarwhalPlayer {
         }
         money = 0;
     }
-        public void setMoney (int amount){
-            clearMoney();
-            addMoney(amount);
+
+    public void setMoney (int amount){
+        clearMoney();
+        addMoney(amount);
+    }
+
+    public boolean removeMoney (int amount){
+        if (money >= amount) {
+            setMoney(money - amount);
+            return true;
         }
-        public boolean removeMoney (int amount){
-            if (money >= amount) {
-                setMoney(money - amount);
-                return true;
-            }
-            return false;
-        }
+        return false;
+    }
 
 
 }

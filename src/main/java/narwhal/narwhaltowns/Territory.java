@@ -1,10 +1,12 @@
 package narwhal.narwhaltowns;
 
 import narwhal.narwhaltowns.Files.DataManager;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public abstract class Territory {
     public Territory(String name,String type, DataManager data){
@@ -108,8 +110,31 @@ public abstract class Territory {
         members.remove(player.getPlayer().getUniqueId().toString());
         player.removeTerritory(this);
     }
-    public void removeMember(String uuid){
+    public void removeMember(UUID uuid){
+        NarwhalPlayer player = NarwhalPlayer.getPlayerFromUUID(uuid);
+        if(player!=null){
+            removeMember(player);
+        }else{
+            members.remove(uuid.toString());
+        }
+    }
+    public boolean removeMember(String name){
+        NarwhalPlayer player = NarwhalPlayer.getPlayerFromName(name);
+        if(player!=null){
+            removeMember(player);
+            return true;
+        }
+        name = name.toLowerCase();
+        DataManager playerData = NarwhalTowns.getPlayerData();
+        if(!playerData.getConfig().contains(name))
+            return false;
+        String uuid = playerData.getConfig().getString(name);
+        if(!members.contains(uuid))
+            return false;
+        members.remove(uuid);
 
+
+        return true;
     }
     public void disconnectPlayer(NarwhalPlayer player){
         onlineMembers.remove(player);
