@@ -1,6 +1,7 @@
 package narwhal.narwhaltowns;
 
 import narwhal.narwhaltowns.Files.DataManager;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,9 +67,21 @@ public abstract class Territory {
         for (NarwhalPlayer player: onlineMembers){
             player.removeTerritory(this);
         }
+        DataManager playerData = NarwhalTowns.getPlayerData();
+        List<String> territories = new ArrayList<>();
+        for (String uuid : members){
+            for(String territory : playerData.getConfig().getStringList(uuid+".territories")){
+                if(!territory.equalsIgnoreCase(name)){
+                    territories.add(territory);
+                }
+            }
+            playerData.getConfig().set(uuid+".territories",territories);
+        }
         chunks = null;
         onlineMembers = null;
         deleted = true;
+        members= null;
+        Territory.territories.remove(this);
     }
     public boolean hasBeenDeleted(){
         return deleted;
@@ -79,11 +92,27 @@ public abstract class Territory {
             members.add(player.getPlayer().getUniqueId().toString());
         player.addTerritory(this);
     }
-
+    public void addMember(String uuid){
+        if(!members.contains(uuid))
+            members.add(uuid);
+    }
+    public boolean connectMember(NarwhalPlayer player){
+        if(members.contains(player.getPlayer().getUniqueId().toString())){
+            onlineMembers.add(player);
+            return true;
+        }
+        return false;
+    }
     public void removeMember(NarwhalPlayer player){
         onlineMembers.remove(player);
-        members.remove(player);
+        members.remove(player.getPlayer().getUniqueId().toString());
         player.removeTerritory(this);
+    }
+    public void removeMember(String uuid){
+
+    }
+    public void disconnectPlayer(NarwhalPlayer player){
+        onlineMembers.remove(player);
     }
     public NarwhalPlayer[] getOnlineMembers(){
         return onlineMembers.toArray(new NarwhalPlayer[0]);

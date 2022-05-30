@@ -10,23 +10,25 @@ public final class NarwhalTowns extends JavaPlugin {
     public NarwhalTowns(){
         instance = this;
     }
-    static NarwhalTowns instance;
-    private DataManager townData;
-    public DataManager getTownData(){
+    private static NarwhalTowns instance;
+    private static DataManager townData;
+    private static DataManager playerData;
+    public static DataManager getTownData(){
         return townData;
+    }
+    public static DataManager getPlayerData(){
+        return playerData;
     }
     @Override
     public void onEnable() {
-        ItemManager.init();
 
         townData = new DataManager(this,"towns");
+        playerData = new DataManager(this,"players");
         getServer().getPluginManager().registerEvents(new JoinListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerMoveListener(), this);
         getServer().getPluginManager().registerEvents(new ChatListener(),this);
         this.getCommand("town").setExecutor(new TownCommands(this));
-        this.getCommand("getmoney").setExecutor(new MoneyCommands(this));
-        this.getCommand("mymoney").setExecutor(new MoneyCommands(this));
-        this.getCommand("takemoney").setExecutor(new MoneyCommands(this));
+        this.getCommand("money").setExecutor(new MoneyCommands(this));
 
         for(String townName : townData.getConfig().getKeys(false)){
             Town town = new Town(townName, townData);
@@ -68,9 +70,9 @@ public final class NarwhalTowns extends JavaPlugin {
             player.save();
         }
     }
-
     public static NarwhalTowns getPlugin(){
         return instance;
     }
 
 }
+

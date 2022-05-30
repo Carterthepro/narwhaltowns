@@ -15,24 +15,28 @@ public class MoneyCommands implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if(label.equalsIgnoreCase("getmoney") && sender instanceof Player)
-        {
-            NarwhalPlayer nplayer = NarwhalPlayer.convertPlayer((Player) sender);
-            nplayer.addMoney(1000);
-            return true;
+        if(!(sender instanceof Player)){
+            sender.sendMessage("Console has infinite money");
+            return false;
         }
-        if(label.equalsIgnoreCase("mymoney") && sender instanceof Player)
-        {
-            NarwhalPlayer nplayer = NarwhalPlayer.convertPlayer((Player) sender);
-            nplayer.getPlayer().sendMessage(Integer.toString(nplayer.money));
-            return true;
+        NarwhalPlayer player = NarwhalPlayer.convertPlayer(((Player)sender));
+        if(player==null)return false;
+        if(args.length == 0){
+            //RUN HELP COMMAND
+            return false;
         }
-        if(label.equalsIgnoreCase("takemoney") && sender instanceof Player)
-        {
-            NarwhalPlayer nplayer = NarwhalPlayer.convertPlayer((Player) sender);
-            nplayer.removeMoney(100);
-            return true;
+        switch (args[0].toLowerCase()){
+            case "get":
+                player.addMoney(1000);
+                return true;
+            case "bal":
+                player.getPlayer().sendMessage("You have "+player.getMoney()+" money");
+                return true;
+            case "take":
+                player.removeMoney(100);
+                return true;
+            default:
+                return false;
         }
-        return false;
     }
 }

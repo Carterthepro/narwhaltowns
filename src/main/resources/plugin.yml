@@ -7,6 +7,4 @@ description: Town plugin
 commands:
   Town:
     aliases: [t,narwhaltown]
-  Getmoney:
-  Mymoney:
-  Takemoney:
+  Money:

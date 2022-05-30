@@ -1,6 +1,7 @@
 package narwhal.narwhaltowns;
 
 import narwhal.narwhaltowns.Files.DataManager;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,44 +14,47 @@ import java.util.UUID;
 
 public class JoinListener implements Listener {
     public JoinListener(NarwhalTowns plugin){
-        data = new DataManager(plugin,"players");
         this.plugin = plugin;
     }
-    private final DataManager data;
+    private DataManager data = NarwhalTowns.getPlayerData();
     private NarwhalTowns plugin;
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
-        NarwhalPlayer player = new NarwhalPlayer(e.getPlayer(), data);
+        NarwhalPlayer player = new NarwhalPlayer(e.getPlayer(),plugin);
         UUID uuid = e.getPlayer().getUniqueId();
-        if (data.getConfig().contains("players." + uuid)) {
-            if (data.getConfig().contains("players." + uuid + ".perms")) {
-                List<String> permsList = data.getConfig().getStringList("players." + uuid + ".perms");
+        if (data.getConfig().contains(uuid.toString())) {
+            if (data.getConfig().contains(uuid + ".perms")) {
+                List<String> permsList = data.getConfig().getStringList(uuid + ".perms");
                 List<Perms> perms = new ArrayList<>();
                 for (String perm : permsList) {
                     perms.add(Perms.valueOf(perm));
                 }
                 player.addPerms(perms.toArray(new Perms[0]));
             }
-            if (data.getConfig().contains("players." + uuid + ".tittle")) {
-                player.setTitle(data.getConfig().getString("players." + uuid + ".tittle"));
+            if (data.getConfig().contains(uuid + ".title")) {
+                player.setTitle(data.getConfig().getString(uuid + ".title"));
             }
-            if (data.getConfig().contains("players." + uuid + ".territories")) {
-                for (String territoryName : data.getConfig().getStringList("players." + uuid + ".territories")) {
+            if (data.getConfig().contains(uuid + ".territories")) {
+                for (String territoryName : data.getConfig().getStringList(uuid + ".territories")) {
                     Territory territory = Territory.getTerritoryFromName(territoryName);
-                    if(territory!=null){
-                        for(String member:territory.getMembers()) {
-                            if (member.equalsIgnoreCase(player.getPlayer().getUniqueId().toString()))
-                                player.addTerritory(territory);
-                                return;
-                        }
+                    if(territory==null){
+                        Bukkit.getLogger().info("TERRITORY == NULL");
+                        return;
                     }
+                    if(territory.connectMember(player)) {
+                        player.addTerritory(territory);
+                    }
+
                 }
             }
         }
+        else{player.save();}
     }
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent e){
+
         NarwhalPlayer player = NarwhalPlayer.convertPlayer(e.getPlayer());
         player.onDisconnect(e);
+        e.setQuitMessage(player.getPlayer().getDisplayName()+" has left");
     }
 }

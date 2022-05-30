@@ -17,7 +17,9 @@ import java.util.List;
 
 public class TownCommands implements CommandExecutor {
     public TownCommands(NarwhalTowns plugin){
+
         this.plugin = plugin;
+
     }
     NarwhalTowns plugin;
     @Override
@@ -29,11 +31,17 @@ public class TownCommands implements CommandExecutor {
             }
             NarwhalPlayer player = NarwhalPlayer.convertPlayer(((Player)sender));
             if(player==null)return false;
+            if(args.length == 0){
+                //RUN HELP COMMAND
+                return false;
+            }
             switch (args[0].toLowerCase()){
                 case "create":
                     return create(player,args);
                 case "info":
                     return info(player,args);
+                case "list":
+                    return list(player,args);
                 case "claim":
                     return claim(player,args);
                 case "leave":
@@ -52,6 +60,7 @@ public class TownCommands implements CommandExecutor {
     }
     boolean create(NarwhalPlayer player,String[] args){
 
+        //ADD NAME FILTERING
         if(args.length<2) {
             player.getPlayer().sendMessage(ChatColor.RED+"Usage: /town create [town name]");
             return false;
@@ -61,7 +70,7 @@ public class TownCommands implements CommandExecutor {
             return false;
         }
         if(args[1].length()>20 || args[1].length()<4) {
-            player.getPlayer().sendMessage(ChatColor.RED+"town names must be from 4-20 characters in length");
+            player.getPlayer().sendMessage(ChatColor.RED+"Town names must be from 4-20 characters in length");
             return false;
         }
         if (Town.getTerritoryFromName(args[1]) != null) {
@@ -74,13 +83,15 @@ public class TownCommands implements CommandExecutor {
             player.getPlayer().sendMessage(ChatColor.RED+"Cannot create town in claimed land");
             return false;
         }
-        Town town = new Town(args[1],plugin.getTownData());
+        Town town = new Town(args[1], NarwhalTowns.getTownData());
         town.addMember(player);
         town.addChunk(x,y);
         player.getPlayer().sendMessage(ChatColor.GREEN + "Created Town: " + town.getName());
         //TEMP
         player.addPerm(Perms.disband);
         player.addPerm(Perms.claim);
+        player.addPerm(Perms.invite);
+        player.setTitle("GOD");
         return true;
 
     }
@@ -94,36 +105,62 @@ public class TownCommands implements CommandExecutor {
                 return false;
             }
 
-        }else{
+        }
+        else {
             town = Town.getTownFromName(args[1]);
             if(town == null){
-                player.getPlayer().sendMessage(ChatColor.RED + args[1]+" does not exist, make sure your spelling the town name correctly");
+               player.getPlayer().sendMessage(ChatColor.RED + args[1]+" does not exist, make sure your spelling the town name correctly");
                 return false;
             }
-            StringBuilder str = new StringBuilder(ChatColor.GREEN+""+ChatColor.BOLD);
-            str.append(town.getName());
-            str.append(ChatColor.RESET + "" + ChatColor.GOLD);
-            str.append("\n---------------\n");
-            str.append("members(");
-            str.append(town.getOnlineMembers().length);
-            str.append(") online(");
-            player.getPlayer().sendMessage();
-
         }
+        StringBuilder str = new StringBuilder(ChatColor.GREEN+""+ChatColor.BOLD);
+        str.append(town.getName());
+        str.append(ChatColor.RESET + "" + ChatColor.GOLD);
+        str.append("\n---------------\n");
+        str.append("Members(");
+        str.append(town.getMembers().length);
+        str.append("):\nOnline(");
+        str.append(town.getOnlineMembers().length);
+        str.append("):");
+        for (NarwhalPlayer member:town.getOnlineMembers()){
+            str.append(member.getTitle());
+            str.append(" ");
+            str.append(member.getPlayer().getName());
+        }
+        str.append("\nOffline(");
+        //GET OFFLINE MEMBER AMOUNT AND NAMES SOMEHOW
+        player.getPlayer().sendMessage(str.toString());
+
+
+
+        return true;
+
+    }
+
+    //IMPROVE IN THE FUTURE, ADD HOVER AND CLICK EVENTS AND MORE PAGES
+    boolean list(NarwhalPlayer player,String[] args){
+
+        StringBuilder str = new StringBuilder("Towns: ");
+
+        for (Town town:Town.getTowns()){
+            str.append(town.getName());
+            str.append(", ");
+        }
+        player.getPlayer().sendMessage(str.toString());
 
         return true;
 
     }
 
     boolean claim(NarwhalPlayer player, String[] args){
-        if(!player.hasPerm(Perms.claim)) {
-            player.getPlayer().sendMessage(ChatColor.RED + "You do not have permission to use that command");
-            return false;
-        }
         Town town = (Town) player.getTerritory("town");
         if(town == null){
 
             player.getPlayer().sendMessage(ChatColor.RED+"You are not apart of any town,try /town create [town name]");
+            return false;
+        }
+        if(!player.hasPerm(Perms.claim)) {
+            player.getPlayer().sendMessage(ChatColor.RED + "You do not have permission to use that command");
             return false;
         }
         int loops = 1;
@@ -132,17 +169,19 @@ public class TownCommands implements CommandExecutor {
             catch (NumberFormatException e){
             }
         }
+        int claimedChunks = 0;
         for (int i = -(loops/2);i<Math.ceil(loops/2D);i++) {
             int x = player.getPlayer().getLocation().getChunk().getX() + i;
             for (int j =-(loops/2);j<Math.ceil(loops/2D);j++) {
                 int y = player.getPlayer().getLocation().getChunk().getZ() + j;
                 if(town.addChunk(x, y)) {
                     player.getPlayer().sendMessage(ChatColor.GREEN + "Claimed Chunk" + " for " + town.getName());
+                    claimedChunks++;
                 }
                 else player.getPlayer().sendMessage(ChatColor.RED + "Couldn't claimed chunk as someone already owns that chunk");
             }
         }
-        Bukkit.getLogger().info(player.getPlayer().getDisplayName() + " claimed "+(loops*loops)+" chunks for "+town.getName());
+        Bukkit.getLogger().info(player.getPlayer().getDisplayName() + " claimed "+(claimedChunks)+" chunks for "+town.getName());
         return true;
 
         }
@@ -218,14 +257,19 @@ public class TownCommands implements CommandExecutor {
             player.getPlayer().sendMessage(ChatColor.RED + "Cannot invite "+args[1]+" as they aren't online");
             return false;
         }
+        if(receivingPlayer == player){
+            player.getPlayer().sendMessage(ChatColor.RED + "You cannot invite yourself to a town");
+            return false;
+        }
+
         NarwhalPlayer receiver = NarwhalPlayer.convertPlayer(receivingPlayer);
-        if(!invites.containsKey(receiver)) invites.put(receiver, new ArrayList<Town>());
-        if(!invites.get(receiver).contains(town)){
+        if(!invites.containsKey(receiver)) invites.put(receiver, new ArrayList<>());
+        if(invites.get(receiver).contains(town)){
             player.getPlayer().sendMessage(ChatColor.RED + "Your town already has a pending invite to that player");
             return false;
         }
         invites.get(receiver).add(town);
-        TextComponent message = new TextComponent("You have been invited to "+town.getName()+" by "+player+"\nclick here to accept");
+        TextComponent message = new TextComponent("You have been invited to "+town.getName()+" by "+player.getPlayer().getDisplayName()+"\nclick here to accept");
         message.setColor(net.md_5.bungee.api.ChatColor.GREEN);
         message.setBold(true);
         message.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,"/town accept "+town.getName()));
@@ -234,11 +278,13 @@ public class TownCommands implements CommandExecutor {
         player.getPlayer().sendMessage(ChatColor.GREEN +"You have invited "+receivingPlayer.getName() + " to join "+town.getName());
         new BukkitRunnable() {
             public void run() {
-                invites.get(receiver).remove(town);
-                if(invites.get(receiver).size()==0)invites.remove(receiver);
-                player.getPlayer().sendMessage(ChatColor.RED + "Invite to "+receivingPlayer.getName() + " has expired");
-                if(receivingPlayer.isOnline())
-                    receivingPlayer.sendMessage(ChatColor.RED + "Invite from "+player.getPlayer().getName() + " has expired");
+                if(invites.get(receiver).contains(town)) {
+                    invites.get(receiver).remove(town);
+                    if (invites.get(receiver).size() == 0) invites.remove(receiver);
+                    player.getPlayer().sendMessage(ChatColor.RED + "Invite to " + receivingPlayer.getName() + " has expired");
+                    if (receivingPlayer.isOnline())
+                        receivingPlayer.sendMessage(ChatColor.RED + "Invite from " + player.getPlayer().getName() + " has expired");
+                }
             }
         }.runTaskLater(plugin, 20*25);
         return true;
@@ -251,7 +297,7 @@ public class TownCommands implements CommandExecutor {
         }
         Town town;
         if(args.length==1){
-            if(invites.get(player).size()==0){
+            if(!invites.containsKey(player)||invites.get(player).size()==0){
                 player.getPlayer().sendMessage(ChatColor.RED + "You do not have any pending invites to accept");
                 return false;
             }
@@ -264,13 +310,14 @@ public class TownCommands implements CommandExecutor {
                 player.getPlayer().sendMessage(ChatColor.RED + args[1]+" does not exist, make sure your spelling the town name correctly");
                 return false;
             }
-            if(!invites.get(player).contains(town)){
+            if(!invites.containsKey(player)||!invites.get(player).contains(town)){
                 player.getPlayer().sendMessage(ChatColor.RED + "You do not have any pending invites from "+town.getName());
                 return false;
             }
 
         }
         town.addMember(player);
+
         invites.get(player).remove(town);
         player.getPlayer().sendMessage(ChatColor.GREEN + "You have joined "+town.getName());
         //ADD PERM SETUP
