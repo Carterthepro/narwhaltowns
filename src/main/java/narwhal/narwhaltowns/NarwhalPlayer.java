@@ -142,6 +142,7 @@ public class NarwhalPlayer {
         }
         return currentChunkX;
     }
+    private Chunk chunkCache;
     public boolean CanInteractWith(Block block, TownPerms permRequired){
         int blockChunkX = block.getChunk().getX();
         int blockChunkY = block.getChunk().getZ();
@@ -150,7 +151,9 @@ public class NarwhalPlayer {
                 return isInTerritory(getTerritory("town"));
             }
         }
-        Chunk chunk = Chunk.getChunkFromCoords(blockChunkX,blockChunkY);
+        Chunk chunk;
+        if(chunkCache!=null && blockChunkX == chunkCache.getX() && blockChunkY == chunkCache.getY())chunk=chunkCache;
+        else chunk =  Chunk.getChunkFromCoords(blockChunkX,blockChunkY);
         if(chunk==null)return true;
         //Is slow, try to optimize
         Town town = (Town) chunk.getOwner("town");
