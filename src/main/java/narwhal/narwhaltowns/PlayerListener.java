@@ -1,15 +1,23 @@
 package narwhal.narwhaltowns;
 
+import org.bukkit.NamespacedKey;
+import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class PlayerMoveListener implements Listener {
+public class PlayerListener implements Listener {
+
     HashMap<Player, List<Integer>> oldChunk = new HashMap<>();
     HashMap<Player, Town> oldTownMap = new HashMap<>();
     @EventHandler
@@ -51,4 +59,21 @@ public class PlayerMoveListener implements Listener {
         }
 
     }
+
+    @EventHandler
+    public void EntityPickUpItemEvent(EntityPickupItemEvent e) {
+        if (ItemManager.isMoney(e.getItem().getItemStack()) && e.getEntity() instanceof Player) {
+            NarwhalPlayer.convertPlayer(((Player)e.getEntity())).addMoney(e.getItem().getItemStack().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(NarwhalTowns.getPlugin(), "value"), PersistentDataType.INTEGER));
+        }
+    }
+
+    @EventHandler
+    public void PlayerDropItemEvent(PlayerDropItemEvent e) {
+        if (ItemManager.isMoney(e.getItemDrop().getItemStack())) {
+            NarwhalPlayer.convertPlayer(e.getPlayer()).removeMoney(e.getItemDrop().getItemStack().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(NarwhalTowns.getPlugin(), "value"), PersistentDataType.INTEGER));
+        }
+    }
+
+
+
 }

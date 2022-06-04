@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.checkerframework.checker.units.qual.A;
 
 
 import java.util.ArrayList;
@@ -83,6 +84,7 @@ public class NarwhalPlayer {
     }
 
     private List<Territory> territories = new ArrayList<Territory>();
+    private List<Bank> banks = new ArrayList<>();
 
     public void addTerritory(Territory territory) {
         for (Territory _territory : territories) {
@@ -113,6 +115,41 @@ public class NarwhalPlayer {
         for (Territory territory : territories) {
             if (territory.getType() == type) {
                 return territory;
+            }
+        }
+        return null;
+    }
+
+    public void addBank(Bank bank) {
+        banks.add(bank);
+    }
+
+    public void removeBank(Bank bank) {
+        banks.remove(bank);
+    }
+
+    public List<Bank> getBanks(){
+        return banks;
+    }
+
+    public List<Bank> getOwnedBanks() {
+        List<Bank> ownedBanks = new ArrayList<>();
+        for (Bank bank : banks) {
+            if(bank.getOwner() == this)
+            {
+                ownedBanks.add(bank);
+            }
+        }
+        return ownedBanks;
+    }
+
+    public Bank getOwnedBanksFromString(String name) {
+        List<Bank> ownedBanks = getOwnedBanks();
+        for(Bank bank:ownedBanks)
+        {
+            if(bank.getName().equalsIgnoreCase(name))
+            {
+                return bank;
             }
         }
         return null;

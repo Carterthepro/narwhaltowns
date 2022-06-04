@@ -35,6 +35,7 @@ public class ItemManager {
         data.set(new NamespacedKey(NarwhalTowns.getPlugin(), "value"), PersistentDataType.INTEGER, billSize);
         item.setItemMeta(meta);
         money = item;
+
     }
 
     public int getBillSize(){
@@ -61,7 +62,7 @@ public class ItemManager {
         bill.setItemMeta(meta);
         return bill;
     }
-    public boolean isMoney(ItemStack item){
+    public static boolean isMoney(ItemStack item){
         if (item == null) return false;
         if (!item.hasItemMeta()) return false;
         if (!item.getItemMeta().hasLore()) return false;
