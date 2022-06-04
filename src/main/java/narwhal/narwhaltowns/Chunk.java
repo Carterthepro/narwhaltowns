@@ -71,7 +71,7 @@ public class Chunk {
     }
     public void unClaim(){
         claimedChunks.remove(this);
-        owners = null;
+        owners.clear();
     }
 
 }

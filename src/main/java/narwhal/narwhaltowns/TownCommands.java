@@ -62,7 +62,6 @@ public class TownCommands implements CommandExecutor {
     }
     boolean create(NarwhalPlayer player,String[] args){
 
-        //ADD NAME FILTERING
         if(args.length<2) {
             player.getPlayer().sendMessage(ChatColor.RED+"Usage: /town create [town name]");
             return false;
@@ -73,6 +72,10 @@ public class TownCommands implements CommandExecutor {
         }
         if(args[1].length()>20 || args[1].length()<4) {
             player.getPlayer().sendMessage(ChatColor.RED+"Town names must be from 4-20 characters in length");
+            return false;
+        }
+        if(!TextFiltering.ValidFilter(args[1], TextFiltering.FilterLevel.Easy)){
+            player.getPlayer().sendMessage(ChatColor.RED+"Name contains a bad word or words!! If you believe this is a mistake contact an admin");
             return false;
         }
         if (Town.getTerritoryFromName(args[1]) != null) {
