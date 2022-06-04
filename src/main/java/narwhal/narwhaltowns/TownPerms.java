@@ -5,6 +5,7 @@ public enum TownPerms {
     disband,
     invite,
     kick,
-    breakAndPlace
+    breakAndPlace,
+    createBankChest
 
 }

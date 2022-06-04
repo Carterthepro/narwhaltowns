@@ -261,6 +261,42 @@ public class NarwhalPlayer {
         }
         return false;
     }
+    //Banks
+    private List<Bank> banks = new ArrayList<>();
+    public void addBank(Bank bank) {
+        banks.add(bank);
+    }
+
+    public void removeBank(Bank bank) {
+        banks.remove(bank);
+    }
+
+    public List<Bank> getBanks(){
+        return banks;
+    }
+
+    public List<Bank> getOwnedBanks() {
+        List<Bank> ownedBanks = new ArrayList<>();
+        for (Bank bank : banks) {
+            if(bank.getOwner() == this)
+            {
+                ownedBanks.add(bank);
+            }
+        }
+        return ownedBanks;
+    }
+
+    public Bank getOwnedBanksFromString(String name) {
+        List<Bank> ownedBanks = getOwnedBanks();
+        for(Bank bank:ownedBanks)
+        {
+            if(bank.getName().equalsIgnoreCase(name))
+            {
+                return bank;
+            }
+        }
+        return null;
+    }
 
 
 }

@@ -61,7 +61,7 @@ public class ItemManager {
         bill.setItemMeta(meta);
         return bill;
     }
-    public boolean isMoney(ItemStack item){
+    public static boolean isMoney(ItemStack item){
         if (item == null) return false;
         if (!item.hasItemMeta()) return false;
         if (!item.getItemMeta().hasLore()) return false;
