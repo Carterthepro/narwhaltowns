@@ -1,15 +1,15 @@
 package narwhal.narwhaltowns;
 
-import org.bukkit.*;
+import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
+import org.bukkit.inventory.Inventory;
 
-import java.util.HashSet;
+import java.util.UUID;
 
 public class MoneyCommands implements CommandExecutor {
 
@@ -29,22 +29,27 @@ public class MoneyCommands implements CommandExecutor {
             NarwhalPlayer player = NarwhalPlayer.convertPlayer(((Player) sender));
             if (player == null) return false;
             if (args.length == 0) {
-                //RUN HELP COMMAND
-                return false;
+                //TODO HELP COMMAND
+                return true;
             }
+
             switch (args[0].toLowerCase()) {
                 case "get":
-                    player.addMoney(1000);
+                    getMoney(player, args);
                     return true;
+
                 case "bal":
-                    player.getPlayer().sendMessage("You have " + player.getMoney() + " money");
+                    bal(player);
                     return true;
+
                 case "take":
-                    player.removeMoney(100);
+                    takeMoney(player, args);
                     return true;
                 default:
-                    return false;
+                    player.getPlayer().sendMessage("unrecognized argument!");
+                    return true;
             }
+
         } else if (label.equalsIgnoreCase("bank")) {
             if (!(sender instanceof Player)) {
                 sender.sendMessage("Console cant use banks");
@@ -56,40 +61,266 @@ public class MoneyCommands implements CommandExecutor {
             switch (args[0].toLowerCase()) {
 
                 case "create":
-                    if(args[1]==null)
-                    {
-                        sender.sendMessage("wrong usage of command please use /bank create [name]");
-                        return false;
-                    }
-                    if(args[2]==null)
-                    {
-                        Bank bank = new Bank(args[1], nPlayer);
-                        return true;
-                    }
-                    Territory territory = Territory.getTerritoryFromName(args[2]);
-                    Bank bank = new Bank(args[1], nPlayer, territory);
+                    createBank(nPlayer, args);
+                    return true;
+
+                case "getbanks":
+                    getBanks(nPlayer, args);
                     return true;
 
                 case "addchest":
-                    if(args[1]==null)
-                    {
-                        sender.sendMessage("please specify the name of the bank in the second argument");
-                        return false;
-                    }
-                    Bank ownedBank = nPlayer.getOwnedBanksFromString(args[1]);
-                    Block block = ((Player) sender).getTargetBlock(null, 5);
-                    if(block instanceof Chest)
-                    {
-                        ownedBank.addChest((Chest) block);
-                        return true;
-                    }
-                    sender.sendMessage("player must be targeting chest to use this command");
-                    return false;
+                    addChest(nPlayer, args);
+                    return true;
+
+                case "addmember":
+                    addMember(nPlayer, args);
+                    return true;
+
+                case "info":
+                    bankInfo(nPlayer, args);
+                    return true;
+
+                case "deposit":
+                    deposit(nPlayer, args);
+                    return true;
+
+                case "withdraw" :
+                    withdraw(nPlayer, args);
+                    return true;
+
+                case "bal":
+                    getBalance(nPlayer, args);
+                    return true;
 
                 default:
-                    return false;
+                    return true;
             }
         }
         return false;
+    }
+
+    boolean getMoney(NarwhalPlayer player, String[] args){
+        if(args.length < 2)
+        {
+            player.getPlayer().sendMessage("insufficient args try /money get [amount]");
+            return false;
+        }
+        try {
+            player.addBills(Integer.parseInt(args[1]));
+        }catch (Exception e){
+            player.getPlayer().sendMessage("amount argument must be an integer");
+            return false;
+        }
+        return true;
+    }
+
+    boolean takeMoney(NarwhalPlayer player, String[] args){
+        if(args.length < 2)
+        {
+            player.getPlayer().sendMessage("insufficient args try /money take [amount]");
+            return false;
+        }
+
+        try {
+            if(player.getMoney() < Integer.parseInt(args[1]))
+            {
+                player.getPlayer().sendMessage("you cannot have a negative balance!(try a lower number)");
+            }
+            player.removeBills(Integer.getInteger(args[1]));
+        }catch (Exception e){
+            player.getPlayer().sendMessage("amount argument must be an integer");
+            return false;
+        }
+        return true;
+    }
+    boolean bal(NarwhalPlayer player){
+        player.getPlayer().sendMessage("You have " + player.getMoney() + " money");
+        return true;
+    }
+
+    boolean createBank(NarwhalPlayer nPlayer, String[] args){
+        if(args.length < 2)
+        {
+            nPlayer.getPlayer().sendMessage("wrong usage of command please use /bank create [name]");
+            return false;
+        }
+        if(args.length < 3)
+        {
+            Bank bank = new Bank(args[1], nPlayer.getPlayer().getUniqueId().toString(), NarwhalTowns.getBankData());
+            nPlayer.addBank(bank);
+            bank.addMember(nPlayer.getPlayer().getUniqueId().toString());
+            nPlayer.getPlayer().sendMessage("successfully create bank!");
+            return true;
+        }
+        Territory territory = Territory.getTerritoryFromName(args[2]);
+        Bank bank = new Bank(args[1], nPlayer.getPlayer().getUniqueId().toString(), NarwhalTowns.getBankData(), territory);
+        return true;
+    }
+    boolean getBanks(NarwhalPlayer nPlayer, String[] args){
+        if(nPlayer.getBanks().size() == 0){
+            nPlayer.getPlayer().sendMessage("You do not belong to any banks!");
+            return true;
+        }
+        for(Bank _bank : nPlayer.getBanks()){
+            nPlayer.getPlayer().sendMessage(_bank.getName());
+        }
+        return true;
+    }
+    boolean addChest(NarwhalPlayer nPlayer, String[] args){
+        if(args[1]==null)
+        {
+            nPlayer.getPlayer().sendMessage("please specify the name of the bank in the second argument");
+            return false;
+        }
+        Bank bank = nPlayer.getOwnedBanksFromString(args[1]);
+        if(bank==null){
+            nPlayer.getPlayer().sendMessage("unrecognized bank");
+            return false;
+        }
+        Block block = nPlayer.getPlayer().getTargetBlock(null, 5);
+        Chest chest = (Chest) block.getState();
+        if(chest == null){
+            nPlayer.getPlayer().sendMessage("player must be targeting chest to use this command");
+            return true;
+        }
+        bank.addChest(block.getLocation());
+        nPlayer.getPlayer().sendMessage("successfully added chest");
+        return true;
+    }
+    boolean addMember(NarwhalPlayer nPlayer, String[] args){
+        if(args.length < 3){
+            nPlayer.getPlayer().sendMessage("insufficient arguments proper usage is /bank addmember [member name] [bank name]");
+        }
+        //TODO add invite support
+        NarwhalPlayer target = NarwhalPlayer.getPlayerFromUUID(Bukkit.getPlayer(args[1]).getUniqueId());
+        Bank bank = Bank.getBankFromName(args[2]);
+        if(target == null){
+            nPlayer.getPlayer().sendMessage("member name not recognized");
+            return false;
+        }if(bank == null){
+            nPlayer.getPlayer().sendMessage("bank name not recognized");
+            return false;
+        }
+        if(bank.getMembers().contains(target)){
+            nPlayer.getPlayer().sendMessage("player already member of bank");
+            return false;
+        }
+        target.addBank(bank);
+        bank.addMember(target.getPlayer().getUniqueId().toString());
+        nPlayer.getPlayer().sendMessage("successfully added player!");
+        return true;
+    }
+    boolean bankInfo(NarwhalPlayer nPlayer, String[] args){
+        if(args.length < 2){
+            nPlayer.getPlayer().sendMessage("Insufficient arguments proper usage is /bank info [bank name]");
+            return false;
+        }
+        Bank bank = Bank.getBankFromName(args[1]);
+        if(bank == null){
+            nPlayer.getPlayer().sendMessage("Specified bank not found!");
+            return false;
+        }
+        nPlayer.getPlayer().sendMessage(Bukkit.getOfflinePlayer(UUID.fromString(bank.getOwner())).getName()+" owns "+bank.getName());
+        nPlayer.getPlayer().sendMessage(bank.getName()+" has "+bank.getMembers().size()+" members");
+        nPlayer.getPlayer().sendMessage(bank.getName()+" has "+bank.getChests().size()+" chests");
+        return true;
+    }
+    boolean deposit(NarwhalPlayer nPlayer, String[] args){
+        if(args.length < 2){
+            nPlayer.getPlayer().sendMessage("insufficient arguments proper usage is /bank deposit [amount]");
+            return false;
+        }
+
+        Block block = nPlayer.getPlayer().getTargetBlock(null, 5);
+        Chest chest = (Chest) block.getState();
+        if(chest == null){
+            nPlayer.getPlayer().sendMessage("player must be targeting chest to use this command");
+            return false;
+        }
+
+        Bank bank = Bank.getBankFromChest(chest.getLocation());
+        if(bank == null){
+            nPlayer.getPlayer().sendMessage("chest does not belong to any bank");
+            return false;
+        }
+
+        if(!bank.getMembers().contains(nPlayer.getPlayer().getUniqueId().toString())){
+            nPlayer.getPlayer().sendMessage("you are not a member of the bank that owns this chest");
+            return false;
+        }
+
+        try{
+            Integer amount = Integer.parseInt(args[1]);
+            if(amount>nPlayer.getMoney()){
+                nPlayer.getPlayer().sendMessage("player does not have enough money to deposit that amount");
+                return false;
+            }
+            bank.addMoney(nPlayer.getPlayer().getUniqueId().toString(), amount);
+            nPlayer.removeBills(amount);
+        }catch (Exception e){
+            nPlayer.getPlayer().sendMessage("amount must be integer");
+            return false;
+        }
+        nPlayer.getPlayer().sendMessage("successfully deposited money");
+        return true;
+    }
+    boolean withdraw(NarwhalPlayer nPlayer, String[] args){
+        if(args.length < 2){
+            nPlayer.getPlayer().sendMessage("insufficient arguments proper usage is /bank deposit [amount]");
+            return false;
+        }
+
+        Block block = nPlayer.getPlayer().getTargetBlock(null, 5);
+        Chest chest = (Chest) block.getState();
+        if(chest == null){
+            nPlayer.getPlayer().sendMessage("player must be targeting chest to use this command");
+            return false;
+        }
+
+        Bank bank = Bank.getBankFromChest(chest.getLocation());
+        if(bank == null){
+            nPlayer.getPlayer().sendMessage("chest does not belong to any bank");
+            return false;
+        }
+
+        if(!bank.getMembers().contains(nPlayer.getPlayer().getUniqueId().toString())){
+            nPlayer.getPlayer().sendMessage("you are not a member of the bank that owns this chest");
+            return false;
+        }
+
+        try{
+            Integer amount = Integer.parseInt(args[1]);
+            if(amount>bank.getPlayerWealth(nPlayer.getPlayer().getUniqueId().toString())){
+                nPlayer.getPlayer().sendMessage("player does not have enough money to deposit that amount");
+                return false;
+            }
+            bank.removeMoney(nPlayer.getPlayer().getUniqueId().toString(), amount);
+            nPlayer.addBills(amount);
+        }catch (Exception e){
+            nPlayer.getPlayer().sendMessage("amount must be integer");
+            return false;
+        }
+        nPlayer.getPlayer().sendMessage("successfully deposited money");
+        return true;
+    }
+    boolean getBalance(NarwhalPlayer nPlayer, String[] args){
+        if(args.length<2){
+            nPlayer.getPlayer().sendMessage("insufficient arguments proper usage is /bank balance [bank name]");
+            return false;
+        }
+        Bank bank = Bank.getBankFromName(args[1]);
+        if(bank==null){
+            nPlayer.getPlayer().sendMessage("bank name not recognized");
+            return false;
+        }
+        NarwhalPlayer player = null;
+        if(args.length>2) {
+            player = NarwhalPlayer.convertPlayer(Bukkit.getPlayer(args[2]));
+        }
+        else{
+            player = nPlayer;
+        }
+        nPlayer.getPlayer().sendMessage(player.getPlayer().getDisplayName()+"'s bank balance is "+bank.getPlayerWealth(nPlayer.getPlayer().getUniqueId().toString()).toString());
+        return true;
     }
 }

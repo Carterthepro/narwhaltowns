@@ -2,14 +2,9 @@ package narwhal.narwhaltowns;
 
 import narwhal.narwhaltowns.Files.DataManager;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
-import org.checkerframework.checker.units.qual.A;
 
 
 import java.util.ArrayList;
@@ -48,7 +43,13 @@ public class NarwhalPlayer {
         for (Territory territory : territories) {
             territoryNames.add(territory.getName());
         }
+        List<String> bankNames = new ArrayList<>();
+        for (Bank bank : banks) {
+            territoryNames.add(bank.getName());
+        }
         data.getConfig().set(player.getUniqueId() + ".territories", territoryNames);
+
+        data.getConfig().set(player.getUniqueId() + ".banks", bankNames);
 
         data.saveConfig();
     }
@@ -135,7 +136,7 @@ public class NarwhalPlayer {
     public List<Bank> getOwnedBanks() {
         List<Bank> ownedBanks = new ArrayList<>();
         for (Bank bank : banks) {
-            if(bank.getOwner() == this)
+            if(bank.getOwner() == getPlayer().getUniqueId().toString())
             {
                 ownedBanks.add(bank);
             }
@@ -209,7 +210,7 @@ public class NarwhalPlayer {
     public static ItemManager itemManager = new ItemManager(1000);
 
     //ADD CHECK IF INV FULL
-    public void addMoney(int amount) {
+    public void addBills(int amount) {
         int maxBillSize = itemManager.getBillSize();
         ItemStack item = itemManager.getMoneyItem();
         for (int i = 0; i < amount / maxBillSize; i++) {
@@ -230,15 +231,28 @@ public class NarwhalPlayer {
     }
         public void setMoney (int amount){
             clearMoney();
-            addMoney(amount);
+            addBills(amount);
         }
-        public boolean removeMoney (int amount){
+        public boolean removeBills(int amount){
             if (money >= amount) {
                 setMoney(money - amount);
                 return true;
             }
             return false;
         }
+
+        public void addMoney(int amount){
+            money += amount;
+        }
+        public boolean removeMoney(int amount){
+            if(amount > money){
+                Bukkit.getLogger().info("money amounts cannot be negative failed to remove money!");
+                return false;
+            }
+            money -= amount;
+            return true;
+        }
+        //TODO add function that stacks bills that are not max stack size
 
 
 }
