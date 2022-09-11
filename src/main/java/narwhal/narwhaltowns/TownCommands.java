@@ -24,7 +24,7 @@ public class TownCommands implements CommandExecutor {
     NarwhalTowns plugin;
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if(label.equalsIgnoreCase("town")||label.equalsIgnoreCase("t")||label.equalsIgnoreCase("narwhaltown")){
+        if(label.equalsIgnoreCase("town")||label.equalsIgnoreCase("t")||label.equalsIgnoreCase("narwhalTown")){
             if(!(sender instanceof Player)){
                 sender.sendMessage("Console cannot do /town");
                 return false;
@@ -48,6 +48,8 @@ public class TownCommands implements CommandExecutor {
                     return leave(player,args);
                 case "invite":
                     return invite(player,args);
+                case "kick":
+                    return kick(player,args);
                 case "disband":
                     return disband(player,args);
                 case "accept":
@@ -60,7 +62,6 @@ public class TownCommands implements CommandExecutor {
     }
     boolean create(NarwhalPlayer player,String[] args){
 
-        //ADD NAME FILTERING
         if(args.length<2) {
             player.getPlayer().sendMessage(ChatColor.RED+"Usage: /town create [town name]");
             return false;
@@ -71,6 +72,10 @@ public class TownCommands implements CommandExecutor {
         }
         if(args[1].length()>20 || args[1].length()<4) {
             player.getPlayer().sendMessage(ChatColor.RED+"Town names must be from 4-20 characters in length");
+            return false;
+        }
+        if(!TextFiltering.ValidFilter(args[1], TextFiltering.FilterLevel.Easy)){
+            player.getPlayer().sendMessage(ChatColor.RED+"Name contains a bad word or words!! If you believe this is a mistake contact an admin");
             return false;
         }
         if (Town.getTerritoryFromName(args[1]) != null) {
@@ -87,11 +92,8 @@ public class TownCommands implements CommandExecutor {
         town.addMember(player);
         town.addChunk(x,y);
         player.getPlayer().sendMessage(ChatColor.GREEN + "Created Town: " + town.getName());
-        //TEMP
-        player.addPerm(Perms.disband);
-        player.addPerm(Perms.claim);
-        player.addPerm(Perms.invite);
-        player.setTitle("GOD");
+        player.setPerms(TownPermPresets.Mayor);
+        player.setTitle(ChatColor.GREEN+""+ChatColor.BOLD+"Mayor");
         return true;
 
     }
@@ -159,7 +161,7 @@ public class TownCommands implements CommandExecutor {
             player.getPlayer().sendMessage(ChatColor.RED+"You are not apart of any town,try /town create [town name]");
             return false;
         }
-        if(!player.hasPerm(Perms.claim)) {
+        if(!player.hasPerm(TownPerms.claim)) {
             player.getPlayer().sendMessage(ChatColor.RED + "You do not have permission to use that command");
             return false;
         }
@@ -222,7 +224,7 @@ public class TownCommands implements CommandExecutor {
         if (town == null) {
             player.getPlayer().sendMessage(ChatColor.RED + "You cannot disband as you are not apart of any town");
         }
-        if(!player.hasPerm(Perms.disband)) {
+        if(!player.hasPerm(TownPerms.disband)) {
             player.getPlayer().sendMessage(ChatColor.RED + "You do not have permission to use that command");
         }
         if (canDisband.contains(player)) {
@@ -241,6 +243,38 @@ public class TownCommands implements CommandExecutor {
         return true;
     }
 
+    boolean kick(NarwhalPlayer player, String[] args){
+        Town town = (Town) player.getTerritory("town");
+        if (town==null) {
+            player.getPlayer().sendMessage(ChatColor.RED + "You cannot kick as you are not apart of any town");
+            return false;
+        }
+        if(!player.hasPerm(TownPerms.kick)){
+            player.getPlayer().sendMessage(ChatColor.RED + "You do not have permission to use that command");
+            return false;
+        }
+        if(args.length<2){
+            player.getPlayer().sendMessage(ChatColor.RED + "Usage /kick [player]");
+            return false;
+        }
+
+        if(args[1].equalsIgnoreCase(player.getPlayer().getDisplayName())){
+            player.getPlayer().sendMessage(ChatColor.RED + "You cannot kick yourself try /leave");
+            return false;
+        }
+
+       if(town.removeMember(args[1])){
+           player.getPlayer().sendMessage(ChatColor.RED + "You have kicked "+args[1]);
+           NarwhalPlayer receiver = NarwhalPlayer.getPlayerFromName(args[1]);
+           if(receiver!=null){
+                receiver.getPlayer().sendMessage(ChatColor.RED + "You have been kicked from "+town.getName());
+           }
+           return true;
+       }
+        player.getPlayer().sendMessage(ChatColor.RED + "Player "+args[1]+" is not in the town, did you spell their name right?");
+        return false;
+    }
+
     HashMap<NarwhalPlayer,List<Town>> invites = new HashMap<>();
     boolean invite(NarwhalPlayer player, String[] args){
         Town town = (Town) player.getTerritory("town");
@@ -248,8 +282,12 @@ public class TownCommands implements CommandExecutor {
             player.getPlayer().sendMessage(ChatColor.RED + "You cannot invite as you are not apart of any town");
             return false;
         }
-        if(!player.hasPerm(Perms.invite)){
+        if(!player.hasPerm(TownPerms.invite)){
             player.getPlayer().sendMessage(ChatColor.RED + "You do not have permission to use that command");
+            return false;
+        }
+        if(args.length<2){
+            player.getPlayer().sendMessage(ChatColor.RED + "Usage /invite [player]");
             return false;
         }
         Player receivingPlayer = Bukkit.getPlayer(args[1]);
@@ -320,7 +358,8 @@ public class TownCommands implements CommandExecutor {
 
         invites.get(player).remove(town);
         player.getPlayer().sendMessage(ChatColor.GREEN + "You have joined "+town.getName());
-        //ADD PERM SETUP
+        player.setPerms(TownPermPresets.Citizen);
+        player.setTitle(ChatColor.GREEN+"Citizen");
         return true;
     }
 
