@@ -35,6 +35,7 @@ public class ItemManager {
         data.set(new NamespacedKey(NarwhalTowns.getPlugin(), "value"), PersistentDataType.INTEGER, billSize);
         item.setItemMeta(meta);
         money = item;
+
     }
 
     public int getBillSize(){

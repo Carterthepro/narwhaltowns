@@ -41,8 +41,14 @@ public class NarwhalPlayer {
         for (Territory territory : territories) {
             territoryNames.add(territory.getName());
         }
+        List<String> bankNames = new ArrayList<>();
+        for (Bank bank : banks) {
+            territoryNames.add(bank.getName());
+        }
         data.getConfig().set(player.getUniqueId() + ".territories", territoryNames);
         data.getConfig().set(player.getUniqueId() + ".name", player.getDisplayName().toLowerCase());
+
+        data.getConfig().set(player.getUniqueId() + ".banks", bankNames);
 
         data.saveConfig();
     }
@@ -165,6 +171,7 @@ public class NarwhalPlayer {
     }
     //Territory
     private List<Territory> territories = new ArrayList<Territory>();
+    private List<Bank> banks = new ArrayList<>();
 
     public void addTerritory(Territory territory) {
         for (Territory _territory : territories) {
@@ -200,6 +207,46 @@ public class NarwhalPlayer {
         return null;
     }
 
+    public void addBank(Bank bank) {
+        banks.add(bank);
+    }
+
+    public void removeBank(Bank bank) {
+        banks.remove(bank);
+    }
+
+    public List<Bank> getBanks(){
+        return banks;
+    }
+
+    public List<Bank> getOwnedBanks() {
+        List<Bank> ownedBanks = new ArrayList<>();
+        for (Bank bank : banks) {
+            if(bank.getOwner() == getPlayer().getUniqueId().toString())
+            {
+                ownedBanks.add(bank);
+            }
+        }
+        return ownedBanks;
+    }
+
+    public Bank getOwnedBanksFromString(String name) {
+        List<Bank> ownedBanks = getOwnedBanks();
+        for(Bank bank:ownedBanks)
+        {
+            if(bank.getName().equalsIgnoreCase(name))
+            {
+                return bank;
+            }
+        }
+        return null;
+    }
+
+    private List<Perms> perms = new ArrayList<>();
+    private final Player player;
+
+    public Player getPlayer() {
+        return player;
     public boolean isInTerritory(Territory territory){
         if(territory == null)return false;
         if(currentChunk==null)return false;
@@ -229,7 +276,7 @@ public class NarwhalPlayer {
     public static ItemManager itemManager = new ItemManager(1000);
 
     //ADD CHECK IF INV FULL
-    public void addMoney(int amount) {
+    public void addBills(int amount) {
         int maxBillSize = itemManager.getBillSize();
         ItemStack item = itemManager.getMoneyItem();
         for (int i = 0; i < amount / maxBillSize; i++) {
@@ -248,6 +295,14 @@ public class NarwhalPlayer {
         }
         money = 0;
     }
+        public void setMoney (int amount){
+            clearMoney();
+            addBills(amount);
+        }
+        public boolean removeBills(int amount){
+            if (money >= amount) {
+                setMoney(money - amount);
+                return true;
 
     public void setMoney (int amount){
         clearMoney();
@@ -297,6 +352,19 @@ public class NarwhalPlayer {
         }
         return null;
     }
+
+        public void addMoney(int amount){
+            money += amount;
+        }
+        public boolean removeMoney(int amount){
+            if(amount > money){
+                Bukkit.getLogger().info("money amounts cannot be negative failed to remove money!");
+                return false;
+            }
+            money -= amount;
+            return true;
+        }
+        //TODO add function that stacks bills that are not max stack size
 
 
 }

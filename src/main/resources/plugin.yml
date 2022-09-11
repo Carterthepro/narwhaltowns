@@ -1,7 +1,7 @@
 name: NarwhalTowns
 version: ${project.version}
 main: narwhal.narwhaltowns.NarwhalTowns
-api-version: 1.18
+api-version: 1.19
 authors: [ TheNarwhal, Lfwer250 ]
 description: Town plugin
 commands:
@@ -9,3 +9,4 @@ commands:
     aliases: [t,narwhaltown]
   Money:
   Bank:
+  Shop:
