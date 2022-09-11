@@ -207,6 +207,12 @@ public class NarwhalPlayer {
         return null;
     }
 
+    public boolean isInTerritory(Territory territory){
+        if(territory == null)return false;
+        if(currentChunk==null)return false;
+        return currentChunk.getOwner(territory.getType())==territory;
+    }
+    //Bank
     public void addBank(Bank bank) {
         banks.add(bank);
     }
@@ -222,7 +228,7 @@ public class NarwhalPlayer {
     public List<Bank> getOwnedBanks() {
         List<Bank> ownedBanks = new ArrayList<>();
         for (Bank bank : banks) {
-            if(bank.getOwner() == getPlayer().getUniqueId().toString())
+            if(bank.getOwner().equalsIgnoreCase(getPlayer().getUniqueId().toString()))
             {
                 ownedBanks.add(bank);
             }
@@ -241,18 +247,6 @@ public class NarwhalPlayer {
         }
         return null;
     }
-
-    private List<Perms> perms = new ArrayList<>();
-    private final Player player;
-
-    public Player getPlayer() {
-        return player;
-    public boolean isInTerritory(Territory territory){
-        if(territory == null)return false;
-        if(currentChunk==null)return false;
-        return currentChunk.getOwner(territory.getType())==territory;
-    }
-
 
 
     //Title
@@ -295,77 +289,19 @@ public class NarwhalPlayer {
         }
         money = 0;
     }
-        public void setMoney (int amount){
-            clearMoney();
-            addBills(amount);
-        }
-        public boolean removeBills(int amount){
-            if (money >= amount) {
-                setMoney(money - amount);
-                return true;
 
     public void setMoney (int amount){
         clearMoney();
-        addMoney(amount);
+        addBills(amount);
     }
 
-    public boolean removeMoney (int amount){
+    public boolean removeBills (int amount){
         if (money >= amount) {
             setMoney(money - amount);
             return true;
         }
         return false;
     }
-    //Banks
-    private List<Bank> banks = new ArrayList<>();
-    public void addBank(Bank bank) {
-        banks.add(bank);
-    }
-
-    public void removeBank(Bank bank) {
-        banks.remove(bank);
-    }
-
-    public List<Bank> getBanks(){
-        return banks;
-    }
-
-    public List<Bank> getOwnedBanks() {
-        List<Bank> ownedBanks = new ArrayList<>();
-        for (Bank bank : banks) {
-            if(bank.getOwner() == this)
-            {
-                ownedBanks.add(bank);
-            }
-        }
-        return ownedBanks;
-    }
-
-    public Bank getOwnedBanksFromString(String name) {
-        List<Bank> ownedBanks = getOwnedBanks();
-        for(Bank bank:ownedBanks)
-        {
-            if(bank.getName().equalsIgnoreCase(name))
-            {
-                return bank;
-            }
-        }
-        return null;
-    }
-
-        public void addMoney(int amount){
-            money += amount;
-        }
-        public boolean removeMoney(int amount){
-            if(amount > money){
-                Bukkit.getLogger().info("money amounts cannot be negative failed to remove money!");
-                return false;
-            }
-            money -= amount;
-            return true;
-        }
-        //TODO add function that stacks bills that are not max stack size
-
 
 }
 
