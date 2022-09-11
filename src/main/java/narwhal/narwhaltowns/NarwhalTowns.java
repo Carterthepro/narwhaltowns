@@ -18,6 +18,7 @@ public final class NarwhalTowns extends JavaPlugin {
     private static DataManager townData;
     private static DataManager playerData;
     private static DataManager bankData;
+    private static DataManager shopData;
     public static DataManager getTownData(){
         return townData;
     }
@@ -27,6 +28,9 @@ public final class NarwhalTowns extends JavaPlugin {
     public static DataManager getBankData(){
         return bankData;
     }
+    public static DataManager getShopData(){
+        return shopData;
+    }
 
     @Override
     public void onEnable() {
@@ -34,12 +38,14 @@ public final class NarwhalTowns extends JavaPlugin {
         townData = new DataManager(this,"towns");
         playerData = new DataManager(this,"players");
         bankData = new DataManager(this, "banks");
+        shopData = new DataManager(this, "shops");
         getServer().getPluginManager().registerEvents(new JoinListener(this), this);
         getServer().getPluginManager().registerEvents(new ChatListener(),this);
         getServer().getPluginManager().registerEvents(new PlayerListener(),this);
         this.getCommand("town").setExecutor(new TownCommands(this));
         this.getCommand("money").setExecutor(new MoneyCommands(this));
         this.getCommand("bank").setExecutor(new MoneyCommands(this));
+        this.getCommand("shop").setExecutor(new MoneyCommands(this));
 
         for(String townName : townData.getConfig().getKeys(false)){
             Town town = new Town(townName, townData);
@@ -69,7 +75,13 @@ public final class NarwhalTowns extends JavaPlugin {
         }
 
         for(String bankName : bankData.getConfig().getKeys(false)){
-            Bank bank = new Bank(bankName, bankData.getConfig().getString(bankName+".owner"), getBankData());
+            Bank bank = null;
+            if(bankData.getConfig().contains(bankName+".sponsor")){
+                bank = new SmallBank(bankName, bankData.getConfig().getString(bankName+".owner"), getBankData(), Territory.getTerritoryFromName(getConfig().getString(bankName+".sponsor")));
+            }
+            else {
+                bank = new SmallBank(bankName, bankData.getConfig().getString(bankName + ".owner"), getBankData());
+            }
             Bukkit.getLogger().info("Loading bank: "+bankName);
 
             if(bankData.getConfig().contains(bankName+".members")){
@@ -92,7 +104,16 @@ public final class NarwhalTowns extends JavaPlugin {
                     bank.addChest(l);
                 }
             }
+            bank.calculatePoolSize();
         }
+
+        SmallBank.setInterest(0.01);
+
+        BankInterestEnactor ie = new BankInterestEnactor();
+        int id = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {@Override
+            public void run() {
+                ie.EnactInterest();
+            }}, 0, 48000);
     }
     @Override
     public void onDisable() {

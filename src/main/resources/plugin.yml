@@ -9,3 +9,4 @@ commands:
     aliases: [t,narwhaltown]
   Money:
   Bank:
+  Shop:

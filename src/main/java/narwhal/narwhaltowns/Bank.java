@@ -3,21 +3,16 @@ package narwhal.narwhaltowns;
 import narwhal.narwhaltowns.Files.DataManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
-import org.bukkit.block.Chest;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 
-import java.lang.reflect.Member;
 import java.util.*;
 
-public class Bank {
-
+public abstract class Bank {
      private DataManager data;
 
      public Bank(String _name, String _owner, DataManager _data) {
           name = _name;
           owner = _owner;
+          money_pool = 0;
           sponsored = false;
           Banks.add(this);
           data = _data;
@@ -25,9 +20,17 @@ public class Bank {
      public Bank(String _name, String _owner, DataManager _data, Territory _sponsor) {
           name = _name;
           owner = _owner;
+          money_pool = 0;
           sponsored = true;
           sponsor = _sponsor;
           Banks.add(this);
+          data = _data;
+     }
+
+     public void calculatePoolSize(){
+          for(String member : members){
+               money_pool += playersWealth.get(member);
+          }
      }
 
      public void save(){
@@ -40,6 +43,9 @@ public class Bank {
                players_wealth.add(getPlayerWealth(member));
           }
           data.getConfig().set(getName() +".owner", owner);
+          if(sponsor!=null) {
+               data.getConfig().set(getName() + ".sponsor", sponsor.getName());
+          }
           data.getConfig().set(getName() +".members", members);
           data.getConfig().set(getName() +".wealth", players_wealth);
 
@@ -67,6 +73,7 @@ public class Bank {
      public void addMoney(String member, int amount){
 
           playersWealth.put(member, playersWealth.get(member)+amount);
+          money_pool += amount;
      }
      public void removeMoney(String member, int amount) {
           if(playersWealth.get(member) < amount)
@@ -75,6 +82,7 @@ public class Bank {
                return;
           }
           playersWealth.put(member, playersWealth.get(member)-amount);
+          money_pool -= amount;
      }
      public void setMoney(String member, int amount) {
 
@@ -124,6 +132,12 @@ public class Bank {
      private boolean sponsored;
      private Territory sponsor;
 
+     private Integer money_pool;
+
+     public Integer getMoney(){
+          return money_pool;
+     }
+
      private static List<Bank> Banks  = new ArrayList<>();
 
      public static Bank getBankFromName(String name){
@@ -144,6 +158,14 @@ public class Bank {
 
      public static List<Bank> getBanks(){
           return Banks;
+     }
+
+     public double getInterest(){
+          return 0.02;
+     }
+
+     public void addMoneyToPool(Integer amount){
+          money_pool+=amount;
      }
 
 }

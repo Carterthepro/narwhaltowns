@@ -1,8 +1,13 @@
 package narwhal.narwhaltowns;
 
+import narwhal.narwhaltowns.shops.BuyShop;
+import narwhal.narwhaltowns.shops.ChestShop;
+import narwhal.narwhaltowns.shops.SellShop;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -50,7 +55,8 @@ public class MoneyCommands implements CommandExecutor {
                     return true;
             }
 
-        } else if (label.equalsIgnoreCase("bank")) {
+        }
+        else if (label.equalsIgnoreCase("bank")) {
             if (!(sender instanceof Player)) {
                 sender.sendMessage("Console cant use banks");
                 return false;
@@ -96,6 +102,17 @@ public class MoneyCommands implements CommandExecutor {
                     return true;
             }
         }
+        else if(label.equalsIgnoreCase("shop")){
+            NarwhalPlayer nPlayer = NarwhalPlayer.convertPlayer((Player) sender);
+            switch(args[0]){
+                case "create":
+                    createShop(nPlayer,args);
+                    return true;
+
+                default:
+                    nPlayer.getPlayer().sendMessage("invalid argument or lack of argument, try again!");
+            }
+        }
         return false;
     }
 
@@ -113,7 +130,6 @@ public class MoneyCommands implements CommandExecutor {
         }
         return true;
     }
-
     boolean takeMoney(NarwhalPlayer player, String[] args){
         if(args.length < 2)
         {
@@ -146,14 +162,14 @@ public class MoneyCommands implements CommandExecutor {
         }
         if(args.length < 3)
         {
-            Bank bank = new Bank(args[1], nPlayer.getPlayer().getUniqueId().toString(), NarwhalTowns.getBankData());
+            Bank bank = new SmallBank(args[1], nPlayer.getPlayer().getUniqueId().toString(), NarwhalTowns.getBankData());
             nPlayer.addBank(bank);
             bank.addMember(nPlayer.getPlayer().getUniqueId().toString());
             nPlayer.getPlayer().sendMessage("successfully create bank!");
             return true;
         }
         Territory territory = Territory.getTerritoryFromName(args[2]);
-        Bank bank = new Bank(args[1], nPlayer.getPlayer().getUniqueId().toString(), NarwhalTowns.getBankData(), territory);
+        Bank bank = new SmallBank(args[1], nPlayer.getPlayer().getUniqueId().toString(), NarwhalTowns.getBankData(), territory);
         return true;
     }
     boolean getBanks(NarwhalPlayer nPlayer, String[] args){
@@ -221,6 +237,7 @@ public class MoneyCommands implements CommandExecutor {
             return false;
         }
         nPlayer.getPlayer().sendMessage(Bukkit.getOfflinePlayer(UUID.fromString(bank.getOwner())).getName()+" owns "+bank.getName());
+        nPlayer.getPlayer().sendMessage(bank.getName() + " has "+bank.getMoney() + " in total");
         nPlayer.getPlayer().sendMessage(bank.getName()+" has "+bank.getMembers().size()+" members");
         nPlayer.getPlayer().sendMessage(bank.getName()+" has "+bank.getChests().size()+" chests");
         return true;
@@ -257,8 +274,8 @@ public class MoneyCommands implements CommandExecutor {
             }
             bank.addMoney(nPlayer.getPlayer().getUniqueId().toString(), amount);
             nPlayer.removeBills(amount);
-        }catch (Exception e){
-            nPlayer.getPlayer().sendMessage("amount must be integer");
+        }catch (NumberFormatException e){
+            nPlayer.getPlayer().sendMessage("amount must be whole number");
             return false;
         }
         nPlayer.getPlayer().sendMessage("successfully deposited money");
@@ -296,8 +313,8 @@ public class MoneyCommands implements CommandExecutor {
             }
             bank.removeMoney(nPlayer.getPlayer().getUniqueId().toString(), amount);
             nPlayer.addBills(amount);
-        }catch (Exception e){
-            nPlayer.getPlayer().sendMessage("amount must be integer");
+        }catch (NumberFormatException e){
+            nPlayer.getPlayer().sendMessage("amount must be whole number");
             return false;
         }
         nPlayer.getPlayer().sendMessage("successfully deposited money");
@@ -323,4 +340,60 @@ public class MoneyCommands implements CommandExecutor {
         nPlayer.getPlayer().sendMessage(player.getPlayer().getDisplayName()+"'s bank balance is "+bank.getPlayerWealth(nPlayer.getPlayer().getUniqueId().toString()).toString());
         return true;
     }
+
+    boolean createShop(NarwhalPlayer nPlayer, String[] args) {
+        if(args.length < 4){
+            nPlayer.getPlayer().sendMessage("insufficient arguments! usage is /shop create [shop type(buy or sell)] [price] [max items](you must be holding the object you intend to sell)");
+            return false;
+        }
+
+        int price;
+        try{
+           price = Integer.parseInt(args[2]);
+        }catch(NumberFormatException e){
+            nPlayer.getPlayer().sendMessage("amount must be a whole number! usage is /shop create [shop type(buy or sell)] [price] [max items](you must be holding the object you intend to sell)");
+            return false;
+        }
+
+        Material item_type = nPlayer.getPlayer().getInventory().getItemInMainHand().getType();
+        if(item_type==null){
+            nPlayer.getPlayer().sendMessage("no item in hand! usage is /shop create [shop type(buy or sell)] [price] [max items](you must be holding the object you intend to sell)");
+            return false;
+        }
+
+        int max;
+        try{
+            max = Integer.parseInt(args[3]);
+        }catch(NumberFormatException e){
+            nPlayer.getPlayer().sendMessage("max must be whole number! usage is /shop create [shop type(buy or sell)] [price] [max items](you must be holding the object you intend to sell)");
+            return false;
+        }
+
+        Block chest = nPlayer.getPlayer().getTargetBlock(null, 5);
+        if(chest.getType()!=Material.CHEST){
+            nPlayer.getPlayer().sendMessage("no chest found(please look at a chest)! usage is /shop create [shop type(buy or sell)] [price] [max items](you must be holding the object you intend to sell)");
+            return false;
+        }
+
+        ChestShop shop = null;
+
+        switch(args[1]) {
+            case "buy":
+                shop = new BuyShop(chest, nPlayer.getPlayer().getUniqueId().toString(), item_type, price, max, NarwhalTowns.getShopData());
+                break;
+            case "sell":
+                shop = new SellShop(chest, nPlayer.getPlayer().getUniqueId().toString(), item_type, price, max, NarwhalTowns.getShopData());
+                break;
+            default:
+                nPlayer.getPlayer().sendMessage("unrecognized shop type");
+                return false;
+        }
+
+        nPlayer.getPlayer().sendMessage("created shop!");
+        return true;
+    }
+    //boolean buy(NarwhalPlayer nPlayer, String[] args) {}
+    //boolean sell(NarwhalPlayer nPlayer, String[] args) {}
+
+
 }

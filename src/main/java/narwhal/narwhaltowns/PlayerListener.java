@@ -1,6 +1,7 @@
 package narwhal.narwhaltowns;
 
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -79,7 +80,7 @@ public class PlayerListener implements Listener {
         //it would probably be quicker to save how much money the player has and access it on join but this works for now
         for(ItemStack item : e.getPlayer().getInventory().getContents()){
             if(ItemManager.isMoney(item)){
-                NarwhalPlayer.convertPlayer(e.getPlayer()).addMoney(item.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(NarwhalTowns.getPlugin(), "value"), PersistentDataType.INTEGER));
+                NarwhalPlayer.convertPlayer(e.getPlayer()).addMoney(item.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(NarwhalTowns.getPlugin(), "value"), PersistentDataType.INTEGER)* item.getAmount());
             }
         }
     }
