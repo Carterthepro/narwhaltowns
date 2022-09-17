@@ -24,7 +24,7 @@ public class SellShop extends ChestShop{
             return false;
         }
         //currently just taking money directly from player, would be best to implement some kind of shop bank account system
-        if(NarwhalPlayer.convertPlayer(Bukkit.getPlayer(UUID.fromString(buyer))).getMoney()<price*amount){
+        if(NarwhalPlayer.convertPlayer(Bukkit.getPlayer(UUID.fromString(buyer))).get()<price*amount){
             return false;
         }
 

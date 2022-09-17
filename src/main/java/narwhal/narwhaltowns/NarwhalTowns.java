@@ -39,7 +39,6 @@ public final class NarwhalTowns extends JavaPlugin {
         playerData = new DataManager(this,"players");
         bankData = new DataManager(this, "banks");
         shopData = new DataManager(this, "shops");
-        getServer().getPluginManager().registerEvents(new JoinListener(this), this);
         getServer().getPluginManager().registerEvents(new JoinListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerListener(), this);
         getServer().getPluginManager().registerEvents(new PlaceOrBreakListener(), this);
