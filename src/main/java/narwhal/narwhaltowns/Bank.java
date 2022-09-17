@@ -134,11 +134,39 @@ public abstract class Bank {
 
      private Integer money_pool;
 
+     public void addMoneyToPool(int amount){money_pool+=amount;}
+     public void removeMoneyFromPool(int amount){money_pool-=amount;}
+
      public Integer getMoney(){
           return money_pool;
      }
 
      private static List<Bank> Banks  = new ArrayList<>();
 
+     public static List<Bank> getBanks(){
+         return Banks;
+     }
 
+     public static Bank getBankFromName(String name){
+         for(Bank bank: getBanks()){
+             if(bank.getName()==name){
+                 return bank;
+             }
+         }
+         return null;
+     }
+     public static Bank getBankFromChest(Location chest){
+         for(Bank bank: getBanks()){
+             if(bank.getChests().contains(chest)){
+                 return bank;
+             }
+         }
+         return null;
+     }
+
+     private static double interest = 0.02;
+
+     public double getInterest(){
+         return interest;
+     }
 }
