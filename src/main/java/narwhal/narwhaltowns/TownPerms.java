@@ -6,6 +6,12 @@ public enum TownPerms {
     invite,
     kick,
     breakAndPlace,
-    createBankChest
+    createBankChest,
+    editOthersPlot,
+    purchasePlot,
+    evict,
+    createShop,
+    createBank,
+    createPlot
 
 }

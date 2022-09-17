@@ -8,8 +8,7 @@ import org.bukkit.Location;
 import java.util.*;
 
 public abstract class Bank {
-     private DataManager data;
-
+    private DataManager data;
      public Bank(String _name, String _owner, DataManager _data) {
           name = _name;
           owner = _owner;
@@ -141,38 +140,5 @@ public abstract class Bank {
 
      private static List<Bank> Banks  = new ArrayList<>();
 
-     public static Bank getBankFromName(String name){
-          for (Bank bank : Banks) {
-               if(bank.getName().equalsIgnoreCase(name))return bank;
-          }
-          return null;
-     }
-
-     public static Bank getBankFromChest(Location inventory){
-          for(Bank bank : Banks){
-               if(bank.getChests().contains(inventory)){
-                    return bank;
-               }
-          }
-          return null;
-     }
-
-     public static List<Bank> getBanks(){
-          return Banks;
-     }
-
-     public double getInterest(){
-          return 0.02;
-     }
-
-     public void addMoneyToPool(Integer amount){
-          money_pool+=amount;
-     }
-
-     //TODO add fee
-     public void wireTransfer(int amount, String member, String recipient, Bank recipient_bank){
-          removeMoney(member, amount);
-          recipient_bank.addMoney(recipient, amount);
-     }
 
 }

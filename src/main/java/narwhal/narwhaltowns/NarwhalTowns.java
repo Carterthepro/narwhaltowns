@@ -40,7 +40,6 @@ public final class NarwhalTowns extends JavaPlugin {
         bankData = new DataManager(this, "banks");
         shopData = new DataManager(this, "shops");
         getServer().getPluginManager().registerEvents(new JoinListener(), this);
-        getServer().getPluginManager().registerEvents(new PlayerListener(), this);
         getServer().getPluginManager().registerEvents(new PlaceOrBreakListener(), this);
         getServer().getPluginManager().registerEvents(new ChatListener(),this);
         getServer().getPluginManager().registerEvents(new PlayerListener(),this);
@@ -113,9 +112,9 @@ public final class NarwhalTowns extends JavaPlugin {
 
         BankInterestEnactor ie = new BankInterestEnactor();
         int id = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {@Override
-            public void run() {
-                ie.EnactInterest();
-            }}, 0, 48000);
+        public void run() {
+            ie.EnactInterest();
+        }}, 0, 48000);
     }
     @Override
     public void onDisable() {
@@ -134,4 +133,3 @@ public final class NarwhalTowns extends JavaPlugin {
     }
 
 }
-

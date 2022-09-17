@@ -19,8 +19,9 @@ public class NarwhalPlayer {
         onlinePlayers.add(this);
         Bukkit.getLogger().info("created narwhal player " + player.getName());
         data = NarwhalTowns.getPlayerData();
-        setCurrentChunk(Chunk.getChunkFromCoords(player.getLocation().getChunk().getX(),player.getLocation().getChunk().getZ()));
+        setCurrentChunk(Chunk.getChunkFromCoords(player.getLocation().getChunk().getX(), player.getLocation().getChunk().getZ()));
     }
+
     private final DataManager data;
 
     public void onDisconnect(PlayerQuitEvent event) {
@@ -30,6 +31,7 @@ public class NarwhalPlayer {
         save();
         NarwhalPlayer.onlinePlayers.remove(this);
     }
+
     public void save() {
         data.getConfig().set(player.getUniqueId() + ".title", title);
         List<String> permList = new ArrayList<String>();
@@ -52,6 +54,7 @@ public class NarwhalPlayer {
 
         data.saveConfig();
     }
+
     private final Player player;
 
     public Player getPlayer() {
@@ -91,6 +94,7 @@ public class NarwhalPlayer {
 
     //Perms
     private List<TownPerms> perms = new ArrayList<>();
+
     public void setPerms(TownPerms[] perms) {
         this.perms.clear();
         this.perms.addAll(Arrays.asList(perms));
@@ -122,53 +126,59 @@ public class NarwhalPlayer {
     private int currentChunkX;
     private int currentChunkY;
     private Chunk currentChunk = null;
-    public Chunk getCurrentChunk(){
+
+    public Chunk getCurrentChunk() {
         return currentChunk;
     }
 
-    public void setCurrentChunk(Chunk chunk){
+    public void setCurrentChunk(Chunk chunk) {
         currentChunk = chunk;
-        if(chunk == null){
+        if (chunk == null) {
             currentChunkX = player.getLocation().getChunk().getX();
             currentChunkY = player.getLocation().getChunk().getZ();
         }
     }
 
-    public int getCurrentChunkY(){
-        if(currentChunk!=null){
+    public int getCurrentChunkY() {
+        if (currentChunk != null) {
             currentChunkY = currentChunk.getY();
             currentChunkX = currentChunk.getX();
         }
         return currentChunkY;
     }
-    public int getCurrentChunkX(){
-        if(currentChunk!=null){
+
+    public int getCurrentChunkX() {
+        if (currentChunk != null) {
             currentChunkY = currentChunk.getY();
             currentChunkX = currentChunk.getX();
         }
         return currentChunkX;
     }
+
     private Chunk chunkCache = null;
-    public boolean CanInteractWith(Block block, TownPerms permRequired){
+
+    public boolean CanInteractWith(Block block, TownPerms permRequired) {
         int blockChunkX = block.getChunk().getX();
         int blockChunkY = block.getChunk().getZ();
-        if(getCurrentChunk() !=null) {
+        if (getCurrentChunk() != null) {
             if (blockChunkX == getCurrentChunkX() && blockChunkY == getCurrentChunkY()) {
                 return isInTerritory(getTerritory("town"));
             }
         }
         Chunk chunk;
-        if(chunkCache!=null && blockChunkX == chunkCache.getX() && blockChunkY == chunkCache.getY())chunk=chunkCache;
+        if (chunkCache != null && blockChunkX == chunkCache.getX() && blockChunkY == chunkCache.getY())
+            chunk = chunkCache;
         else {
-            chunk = Chunk.getChunkFromCoords(blockChunkX,blockChunkY);
+            chunk = Chunk.getChunkFromCoords(blockChunkX, blockChunkY);
             chunkCache = chunk;
         }
-        if(chunk==null)return true;
+        if (chunk == null) return true;
         //Is slow, try to optimize
         Town town = (Town) chunk.getOwner("town");
-        if(town==null)return true;
-        return hasPerm(permRequired)&&town== getTerritory("town");
+        if (town == null) return true;
+        return hasPerm(permRequired) && town == getTerritory("town");
     }
+
     //Territory
     private List<Territory> territories = new ArrayList<Territory>();
     private List<Bank> banks = new ArrayList<>();
@@ -207,10 +217,10 @@ public class NarwhalPlayer {
         return null;
     }
 
-    public boolean isInTerritory(Territory territory){
-        if(territory == null)return false;
-        if(currentChunk==null)return false;
-        return currentChunk.getOwner(territory.getType())==territory;
+    public boolean isInTerritory(Territory territory) {
+        if (territory == null) return false;
+        if (currentChunk == null) return false;
+        return currentChunk.getOwner(territory.getType()) == territory;
     }
 
     public void addBank(Bank bank) {
@@ -221,15 +231,14 @@ public class NarwhalPlayer {
         banks.remove(bank);
     }
 
-    public List<Bank> getBanks(){
+    public List<Bank> getBanks() {
         return banks;
     }
 
     public List<Bank> getOwnedBanks() {
         List<Bank> ownedBanks = new ArrayList<>();
         for (Bank bank : banks) {
-            if(bank.getOwner() == getPlayer().getUniqueId().toString())
-            {
+            if (bank.getOwner().equalsIgnoreCase(getPlayer().getUniqueId().toString())) {
                 ownedBanks.add(bank);
             }
         }
@@ -238,18 +247,16 @@ public class NarwhalPlayer {
 
     public Bank getOwnedBanksFromString(String name) {
         List<Bank> ownedBanks = getOwnedBanks();
-        for(Bank bank:ownedBanks)
-        {
-            if(bank.getName().equalsIgnoreCase(name))
-            {
+        for (Bank bank : ownedBanks) {
+            if (bank.getName().equalsIgnoreCase(name)) {
                 return bank;
             }
         }
         return null;
     }
-
     //Title
     private String title = "";
+
     public String getTitle() {
         return title;
     }
@@ -281,17 +288,6 @@ public class NarwhalPlayer {
         money += amount;
     }
 
-    public void clearMoney() {
-        for (ItemStack item : player.getInventory().getContents()) {
-            if(itemManager.isMoney(item))
-                player.getInventory().remove(item);
-        }
-        money = 0;
-    }
-    public void setMoney (int amount){
-        clearMoney();
-        addBills(amount);
-    }
     public boolean removeBills(int amount) {
         if (money >= amount) {
             setMoney(money - amount);
@@ -301,11 +297,12 @@ public class NarwhalPlayer {
     }
     //Banks
 
-    public void addMoney(int amount){
+    public void addMoney(int amount) {
         money += amount;
     }
-    public boolean removeMoney(int amount){
-        if(amount > money){
+
+    public boolean removeMoney(int amount) {
+        if (amount > money) {
             Bukkit.getLogger().info("money amounts cannot be negative failed to remove money!");
             return false;
         }
@@ -314,6 +311,19 @@ public class NarwhalPlayer {
     }
     //TODO add function that stacks bills that are not max stack size
 
+
+    public void clearMoney() {
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (itemManager.isMoney(item))
+                player.getInventory().remove(item);
+        }
+        money = 0;
+    }
+
+    public void setMoney(int amount) {
+        clearMoney();
+        addBills(amount);
+    }
 
 }
 
